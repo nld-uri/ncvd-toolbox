@@ -1,4 +1,6 @@
-"""Build NCVD_toolbox.pptx from the NLD template with LaTeX equations and MP4 animations.
+"""Build the earlier template-based deck (NCVD_toolbox_v1.pptx) from the NLD template with LaTeX equations and MP4 animations.
+
+Superseded: NCVD_toolbox.pptx is now exported from the live slides by live/lib/export_pptx.py.
 
     python build_deck.py
 
@@ -306,6 +308,6 @@ notes(s, 'Options: rank, center, operator (ls, tls, bcls), forcing, time_scale, 
 s = prs.slides.add_slide(layout(prs, 'NLD Closing'))
 ph(s, 104).text = 'github.com/nld-uri/ncvd-toolbox \u00b7 web.uri.edu/nld/ncvd-toolbox\nchelidze@uri.edu'
 
-out = os.path.join(HERE, 'NCVD_toolbox.pptx')
+out = os.path.join(HERE, 'NCVD_toolbox_v1.pptx')
 prs.save(out)
 print('wrote', out, len(prs.slides._sldIdLst), 'slides')

@@ -3,6 +3,8 @@
 The current deck is an HTML slide deck with live animations:
 [NCVD toolbox slides](https://claude.ai/artifact/5XebWDvuxhZizJR5Ls6mmn).
 A vector export of the same deck is `../NCVD_toolbox_slides.pdf`; animations appear there as one frame each.
+`../NCVD_toolbox.pptx` is the PowerPoint version: slide images, the animations as MP4 movies, and the
+speaker notes.
 
 `embeds/*.html` are the five animations as standalone pages. Open one in a browser to watch it.
 Append `#p=0.4` to the URL to freeze it at 40 % of its cycle.
@@ -19,3 +21,5 @@ Rebuild: `python make_embeds.py` (needs the `ncvd` package in `../../../python`,
 `npx terser` for minification). Every page stays under 16 KB. `lib/plot.js` is the canvas plotting
 kit; `lib/latexblock.py` typesets slide text blocks with XeLaTeX (IBM Plex Sans, Latin Modern Math);
 `latex_spec.py` holds the typeset blocks used in the deck; `lib/export_pdf.py` renders a deck to PDF.
+`lib/record_embed.py` records an embed to MP4; `lib/export_pptx.py` builds the PowerPoint file from the
+deck PDF, the MP4s and the speaker notes.
