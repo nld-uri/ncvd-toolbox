@@ -67,7 +67,10 @@ results = runtests('matlab/tests/test_ncvd.m')   % 13 tests, incl. Python cross-
 | `python/` | `ncvd` package, seven examples, replication of the published experiments, tests |
 | `matlab/` | `+ncvd` package with the same API, seven examples, tests |
 | `docs/manual/NCVD_manual.pdf` | user manual: theory, geometry, practical guidance, API (LaTeX source alongside, XeLaTeX) |
-| `docs/slides/NCVD_toolbox.pptx` | slide deck with embedded animations (`build_deck.py` rebuilds it) |
+| [Live slides](https://claude.ai/artifact/5XebWDvuxhZizJR5Ls6mmn) | HTML slide deck with animations computed by the toolbox and running in the browser |
+| `docs/slides/NCVD_toolbox_slides.pdf` | PDF export of the live slides |
+| `docs/slides/live/` | the five animations as standalone pages, and the code that builds them |
+| `docs/slides/NCVD_toolbox.pptx` | earlier PowerPoint version with MP4 animations (`build_deck.py` rebuilds it) |
 | `docs/animations/` | animations (MP4) and stills (`make_animations.py` rebuilds them) |
 
 ## How to cite
