@@ -21,6 +21,9 @@ def blk(kind, inner, attrs=''):
 def m(tex, display=False):
     x = convert(tex, display='block' if display else 'inline')
     body = x[x.index('>') + 1:x.rindex('</math>')]
+    # MathML Core ignores mathvariant: use upright bold Unicode Greek (as \boldsymbol in the manual)
+    for code, bold in {'003A6': '\U0001D6BD', '0039B': '\U0001D6B2', '003A3': '\U0001D6BA', '0039E': '\U0001D6B5'}.items():
+        body = body.replace(f'<mi mathvariant="bold-italic">&#x{code};</mi>', f'<mi>{bold}</mi>')
     ann = f'<annotation encoding="application/x-tex">{html.escape(tex, quote=False)}</annotation>'
     if display:
         return (f'<math display="block" style="display:block math;{MSTYLE.replace("1.05em", "1.15em")};margin:16px 0">'
