@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ncvd"
+version = "1.0.0"
+description = "Nonlinear Characteristic Value Decomposition: exact state-rate modal decomposition, FIR pole correction, ensemble and amplitude-dependent identification"
+authors = [{name = "Nonlinear Dynamics Laboratory, University of Rhode Island"}]
+requires-python = ">=3.9"
+license = {text = "MIT"}
+dependencies = ["numpy>=1.22", "scipy>=1.8"]
+
+[project.urls]
+Homepage = "https://web.uri.edu/nld/ncvd-toolbox/"
+Repository = "https://github.com/nld-uri/ncvd-toolbox"
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.5"]
+test = ["pytest"]
+
+[tool.setuptools]
+packages = ["ncvd"]

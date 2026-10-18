@@ -1,0 +1,98 @@
+%% nld-style.sty -- NLD colours and fonts, shared by nld.cls and beamerthemeNLD.sty
+%% Nonlinear Dynamics Laboratory, University of Rhode Island
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{nld-style}[2026/10/10 v0.1 NLD colours and fonts]
+
+\RequirePackage{iftex}
+\RequirePackage{xcolor}
+
+% ---------------------------------------------------------------- colours
+% Brand
+\definecolor{nldnavy}{HTML}{132433}
+\definecolor{nldnavy700}{HTML}{1B2E3E}
+\definecolor{nldnavy600}{HTML}{2A3E4E}
+\definecolor{nldnavy900}{HTML}{0E1B27}
+\definecolor{nldcopper}{HTML}{B4622A}
+\definecolor{nldcopperdeep}{HTML}{9A5323}   % small copper text on white/paper
+\definecolor{nldcopperlight}{HTML}{D98A52}  % copper on navy
+\definecolor{nldslate}{HTML}{8FA3B0}
+\definecolor{nldslatetint}{HTML}{E7ECEF}
+\definecolor{nldstone}{HTML}{8A8578}
+\definecolor{nldstonelight}{HTML}{D9D3C7}
+\definecolor{nldpaper}{HTML}{F7F6F2}
+\definecolor{nldhairline}{HTML}{DCD9D2}
+% Text
+\definecolor{nldink}{HTML}{132433}
+\definecolor{nldmuted}{HTML}{5B6168}        % secondary text on white/paper
+\definecolor{nldmutednavy}{HTML}{A9B6BF}    % secondary text on navy
+% Figure series, in order (colour-vision checked)
+\definecolor{nldfigA}{HTML}{1F5A85}
+\definecolor{nldfigB}{HTML}{B4622A}
+\definecolor{nldfigC}{HTML}{588A75}
+\definecolor{nldfigD}{HTML}{CA863E}
+\definecolor{nldfigE}{HTML}{774860}
+\definecolor{nldfigref}{HTML}{8A8578}
+
+% ---------------------------------------------------------------- fonts
+% Order of preference:
+%  XeLaTeX/LuaLaTeX: (1) IBM Plex installed on the system,
+%                    (2) Plex OTFs from TeX Live (plex package),
+%                    (3) the TTFs shipped in ./fonts/,
+%                    (4) Latin Modern.
+%  pdfLaTeX:         plex-sans/plex-serif/plex-mono packages if present, else Latin Modern.
+% Mathematics always uses Computer Modern / Latin Modern Math.
+\newif\ifnld@plex \nld@plexfalse
+\ifPDFTeX
+  \RequirePackage[T1]{fontenc}
+  \IfFileExists{plex-serif.sty}{%
+    \RequirePackage{plex-sans}%
+    \RequirePackage{plex-serif}%
+    \RequirePackage{plex-mono}%
+    \nld@plextrue}{%
+    \RequirePackage{lmodern}%
+    \PackageWarning{nld-style}{IBM Plex not found; using Latin Modern}}
+\else
+  \RequirePackage{fontspec}
+  \RequirePackage{unicode-math}
+  % Load the math font by file name first: XeTeX on macOS does not see TeX Live fonts by family name
+  \IfFontExistsTF{latinmodern-math.otf}{\setmathfont{latinmodern-math.otf}}{%
+    \IfFontExistsTF{Latin Modern Math}{\setmathfont{Latin Modern Math}}{%
+      \PackageWarning{nld-style}{Latin Modern Math not found; using the default math font}}}
+  \def\nld@setplex#1#2{% #1 = family file stem, #2 = command
+    \IfFontExistsTF{#1-Regular.otf}{%
+      #2{#1}[Extension=.otf, UprightFont=*-Regular, ItalicFont=*-Italic,
+             BoldFont=*-SemiBold, BoldItalicFont=*-SemiBoldItalic]\nld@plextrue}{%
+    \IfFontExistsTF{fonts/#1-Regular.ttf}{%
+      #2{#1}[Path=fonts/, Extension=.ttf, UprightFont=*-Regular, ItalicFont=*-Italic,
+             BoldFont=*-SemiBold, BoldItalicFont=*-SemiBoldItalic]\nld@plextrue}{}}}
+  \IfFontExistsTF{IBM Plex Sans}{%
+    \IfFontExistsTF{IBM Plex Sans SemiBold}{%
+      \setsansfont{IBM Plex Sans}[BoldFont={IBM Plex Sans SemiBold}, BoldItalicFont={IBM Plex Sans SemiBold Italic}]}{%
+      \setsansfont{IBM Plex Sans}}%
+    \IfFontExistsTF{IBM Plex Serif SemiBold}{%
+      \setmainfont{IBM Plex Serif}[BoldFont={IBM Plex Serif SemiBold}, BoldItalicFont={IBM Plex Serif SemiBold Italic}]}{%
+      \setmainfont{IBM Plex Serif}}%
+    \setmonofont{IBM Plex Mono}%
+    \nld@plextrue}{%
+    \nld@setplex{IBMPlexSans}{\setsansfont}%
+    \nld@setplex{IBMPlexSerif}{\setmainfont}%
+    \IfFontExistsTF{IBMPlexMono-Regular.otf}{\setmonofont{IBMPlexMono}[Extension=.otf, UprightFont=*-Regular, ItalicFont=*-Italic, BoldFont=*-Medium]}{%
+      \IfFontExistsTF{fonts/IBMPlexMono-Regular.ttf}{\setmonofont{IBMPlexMono}[Path=fonts/, Extension=.ttf, UprightFont=*-Regular, ItalicFont=*-Italic, BoldFont=*-Medium]}{}}}
+  \ifnld@plex\else\PackageWarning{nld-style}{IBM Plex not found; using Latin Modern}\fi
+\fi
+
+% Uppercase tracked label, as in the lockup ("eyebrow")
+\newcommand{\nldeyebrowcolor}{nldmuted}
+\newcommand{\nldeyebrow}[1]{{\sffamily\footnotesize\color{\nldeyebrowcolor}%
+  \textcolor{nldcopper}{\rule[0.3ex]{1.6em}{0.28ex}}\hspace{0.6em}%
+  \nld@track{\MakeUppercase{#1}}}}
+\ifPDFTeX
+  \IfFileExists{microtype.sty}{%
+    \RequirePackage{microtype}%
+    \newcommand{\nld@track}[1]{\textls[120]{#1}}}{%
+    \newcommand{\nld@track}[1]{#1}}
+\else
+  \newcommand{\nld@track}[1]{{\addfontfeature{LetterSpace=12}#1}}
+\fi
+
+\endinput

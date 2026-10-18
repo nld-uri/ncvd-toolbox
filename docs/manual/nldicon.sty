@@ -1,0 +1,10 @@
+%% nldicon.sty -- NLD subject icons in LaTeX
+%% \nldicon{backbone-curve}            icon at text height (1em)
+%% \nldicon[2cm]{shaker-on-navy}        any height; suffixes: -on-navy, -mono-navy, -mono-paper
+%% Set the folder with \renewcommand{\nldicondir}{path/to/pdf/}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{nldicon}[2026/10/10 v1.0 NLD subject icons]
+\RequirePackage{graphicx}
+\newcommand{\nldicondir}{icons/}
+\newcommand{\nldicon}[2][1em]{\raisebox{-0.18em}{\includegraphics[height=#1]{\nldicondir nld-icon-#2.pdf}}}
+\endinput
