@@ -21,6 +21,8 @@ Test systems
     systems.chain, systems.paper_chain10, systems.paper_chain3,
     systems.duffing_chain, systems.simulate_linear, systems.simulate_nonlinear,
     systems.add_noise
+Citation
+    cite()  -- BibTeX for the software (doi:10.5281/zenodo.23549069) and the method paper
 """
 from .core import (ncvd, ncvd_pair, decompose, NCVDResult, DEFAULT_RANK,
                    balanced_quotient, regression_operator, auto_time_scale, noise_variance)
@@ -31,6 +33,7 @@ from .kinematics import state_from_displacement, deriv_filter, correct_poles, De
 from .tracking import track, window_edges, band_frequency
 from .ensemble import ncvd_ensemble
 from . import rom, benchmarks, systems
+from .cite import cite, DOI
 
 __version__ = '1.0.0'
 __all__ = ['ncvd', 'ncvd_pair', 'decompose', 'NCVDResult', 'DEFAULT_RANK',
@@ -39,4 +42,4 @@ __all__ = ['ncvd', 'ncvd_pair', 'decompose', 'NCVDResult', 'DEFAULT_RANK',
            'mac_phase_matched', 'relative_error', 'normalize_shape', 'match_modes',
            'poles_and_shapes', 'state_from_displacement', 'deriv_filter',
            'correct_poles', 'DerivFilter', 'track', 'window_edges', 'band_frequency',
-           'ncvd_ensemble', 'rom', 'benchmarks', 'systems']
+           'ncvd_ensemble', 'rom', 'benchmarks', 'systems', 'cite', 'DOI']

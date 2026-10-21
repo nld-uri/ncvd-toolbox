@@ -15,7 +15,7 @@
 <!-- /wp:paragraph -->
 
 <!-- wp:html -->
-<p style="margin:8px 0 24px"><a href="https://github.com/nld-uri/ncvd-toolbox" style="display:inline-block;background:#9A5323;color:#FFFFFF;padding:10px 16px;border-radius:2px;text-decoration:none;font-weight:600;margin:0 8px 8px 0">Code on GitHub</a><a href="https://github.com/nld-uri/ncvd-toolbox/blob/main/docs/manual/NCVD_manual.pdf" style="display:inline-block;border:1px solid #8A8578;color:#132433;padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">User manual (PDF)</a><a href="https://github.com/nld-uri/ncvd-toolbox/raw/main/docs/slides/NCVD_toolbox.pptx" style="display:inline-block;border:1px solid #8A8578;color:#132433;padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">Slides (PowerPoint)</a></p>
+<p style="margin:8px 0 24px"><a href="https://github.com/nld-uri/ncvd-toolbox" style="display:inline-block;background:#9A5323;color:#FFFFFF;padding:10px 16px;border-radius:2px;text-decoration:none;font-weight:600;margin:0 8px 8px 0">Code on GitHub</a><a href="https://github.com/nld-uri/ncvd-toolbox/blob/main/docs/manual/NCVD_manual.pdf" style="display:inline-block;border:1px solid #8A8578;color:#132433;padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">User manual (PDF)</a><a href="https://github.com/nld-uri/ncvd-toolbox/raw/main/docs/slides/NCVD_toolbox.pptx" style="display:inline-block;border:1px solid #8A8578;color:#132433;padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">Slides (PowerPoint)</a><a href="https://doi.org/10.5281/zenodo.23549069" style="display:inline-block;border:1px solid #8A8578;color:#132433;padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">doi:10.5281/zenodo.23549069</a></p>
 <!-- /wp:html -->
 
 <!-- wp:html -->
@@ -166,5 +166,43 @@ tr  = ncvd.track(d, v, a, Fs=fs, Length=800, Step=400, M=M);</code></pre>
 <!-- /wp:code -->
 
 <!-- wp:paragraph -->
-<p>Both packages share the same API and are tested against each other. The <a href="https://github.com/nld-uri/ncvd-toolbox/blob/main/docs/manual/NCVD_manual.pdf">user manual</a> covers the theory, the options and seven worked examples; the <a href="https://github.com/nld-uri/ncvd-toolbox">repository README</a> lists the contents. If you use the toolbox, please cite H.-W.-X. Li, D. L. Stein, D. Chelidze, <em>Mechanical Systems and Signal Processing</em> 222 (2025) 111769, and D. L. Stein, D. Chelidze, <em>Nonlinear Dynamics</em> 113 (2025) 25–45.</p>
+<p>Both packages share the same API and are tested against each other. The <a href="https://github.com/nld-uri/ncvd-toolbox/blob/main/docs/manual/NCVD_manual.pdf">user manual</a> covers the theory, the options and seven worked examples; the <a href="https://github.com/nld-uri/ncvd-toolbox">repository README</a> lists the contents.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<p style="margin:40px 0 8px;font-size:13px;line-height:16px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;color:#5B6168"><span style="display:inline-block;width:24px;height:4px;background:#B4622A;vertical-align:middle;margin-right:10px"></span>Citation</p>
+<!-- /wp:html -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">How to cite</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Please cite both the software, archived on Zenodo as <a href="https://doi.org/10.5281/zenodo.23549069">doi:10.5281/zenodo.23549069</a>, and the method paper. <code>ncvd.cite()</code> in Python and <code>ncvd.cite</code> in MATLAB print the entries below.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:code -->
+<pre class="wp-block-code"><code>@software{chelidze2026ncvd,
+  author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
+  title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},
+  version   = {1.0.0},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23549069},
+  url       = {https://github.com/nld-uri/ncvd-toolbox}
+}
+
+@article{li2025cvd,
+  author  = {Li, Hewenxuan and Stein, Dalton L. and Chelidze, David},
+  title   = {Characteristic value decomposition: A unifying paradigm for data-driven modal analysis},
+  journal = {Mechanical Systems and Signal Processing},
+  volume  = {222},
+  pages   = {111769},
+  year    = {2025},
+  doi     = {10.1016/j.ymssp.2024.111769}
+}</code></pre>
+<!-- /wp:code -->
+
+<!-- wp:paragraph -->
+<p>For amplitude-dependent identification and the reduced-order-model tools, please also cite D. L. Stein, D. Chelidze, <em>Nonlinear Dynamics</em> 113 (2025) 25–45, <a href="https://doi.org/10.1007/s11071-024-10239-0">doi:10.1007/s11071-024-10239-0</a>.</p>
 <!-- /wp:paragraph -->

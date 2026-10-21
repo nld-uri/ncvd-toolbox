@@ -9,6 +9,7 @@ from latex2mathml.converter import convert
 
 RAW = 'https://raw.githubusercontent.com/nld-uri/ncvd-toolbox/main/docs/web/'
 GH = 'https://github.com/nld-uri/ncvd-toolbox'
+DOI = '10.5281/zenodo.23549069'
 MSTYLE = "font-family:'Latin Modern Math','STIX Two Math','Cambria Math',math;font-size:1.05em"
 B = []
 
@@ -74,7 +75,9 @@ blk('html', f'<p style="margin:8px 0 24px"><a href="{GH}" style="display:inline-
     f'<a href="{GH}/blob/main/docs/manual/NCVD_manual.pdf" style="display:inline-block;border:1px solid #8A8578;color:#132433;'
     'padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">User manual (PDF)</a>'
     f'<a href="{GH}/raw/main/docs/slides/NCVD_toolbox.pptx" style="display:inline-block;border:1px solid #8A8578;color:#132433;'
-    'padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">Slides (PowerPoint)</a></p>')
+    'padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">Slides (PowerPoint)</a>'
+    f'<a href="https://doi.org/{DOI}" style="display:inline-block;border:1px solid #8A8578;color:#132433;'
+    f'padding:9px 16px;border-radius:2px;text-decoration:none;margin:0 8px 8px 0">doi:{DOI}</a></p>')
 
 # ---------------------------------------------------------------- decomposition
 eyebrow('The decomposition')
@@ -168,9 +171,34 @@ rec = ncvd.decompose(d, v, a);
 mp  = ncvd.modalParameters(rec.lam);
 tr  = ncvd.track(d, v, a, Fs=fs, Length=800, Step=400, M=M);""")
 p(f'Both packages share the same API and are tested against each other. The <a href="{GH}/blob/main/docs/manual/NCVD_manual.pdf">user manual</a> '
-  f'covers the theory, the options and seven worked examples; the <a href="{GH}">repository README</a> lists the contents. '
-  'If you use the toolbox, please cite H.-W.-X. Li, D. L. Stein, D. Chelidze, <em>Mechanical Systems and Signal Processing</em> '
-  '222 (2025) 111769, and D. L. Stein, D. Chelidze, <em>Nonlinear Dynamics</em> 113 (2025) 25–45.')
+  f'covers the theory, the options and seven worked examples; the <a href="{GH}">repository README</a> lists the contents.')
+
+# ---------------------------------------------------------------- citation
+eyebrow('Citation')
+h2('How to cite')
+p(f'Please cite both the software, archived on Zenodo as <a href="https://doi.org/{DOI}">doi:{DOI}</a>, and the method paper. '
+  '<code>ncvd.cite()</code> in Python and <code>ncvd.cite</code> in MATLAB print the entries below.')
+code(f"""@software{{chelidze2026ncvd,
+  author    = {{Chelidze, David and Li, Hewenxuan and Stein, Dalton L.}},
+  title     = {{{{NCVD}} toolbox: Nonlinear Characteristic Value Decomposition for {{Python}} and {{MATLAB}}}},
+  version   = {{1.0.0}},
+  year      = {{2026}},
+  publisher = {{Zenodo}},
+  doi       = {{{DOI}}},
+  url       = {{{GH}}}
+}}
+
+@article{{li2025cvd,
+  author  = {{Li, Hewenxuan and Stein, Dalton L. and Chelidze, David}},
+  title   = {{Characteristic value decomposition: A unifying paradigm for data-driven modal analysis}},
+  journal = {{Mechanical Systems and Signal Processing}},
+  volume  = {{222}},
+  pages   = {{111769}},
+  year    = {{2025}},
+  doi     = {{10.1016/j.ymssp.2024.111769}}
+}}""")
+p('For amplitude-dependent identification and the reduced-order-model tools, please also cite D. L. Stein, D. Chelidze, '
+  '<em>Nonlinear Dynamics</em> 113 (2025) 25–45, <a href="https://doi.org/10.1007/s11071-024-10239-0">doi:10.1007/s11071-024-10239-0</a>.')
 
 out = '\n\n'.join(B)
 with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'page.html'), 'w') as f:

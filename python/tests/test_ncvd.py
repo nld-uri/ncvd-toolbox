@@ -256,3 +256,11 @@ def test_diag_readout_option_matches_benchmark(chain10):
     r = nc.ncvd(d, v, a, readout='diag', sort=False)
     g = bm.gcvd(d, v, a)
     assert nearest_err(r.lam, g['lam']) < 1e-9
+
+
+def test_cite():
+    assert nc.DOI == '10.5281/zenodo.23549069'
+    assert nc.DOI in nc.cite() and '10.1016/j.ymssp.2024.111769' in nc.cite()
+    assert nc.DOI in nc.cite('text')
+    with pytest.raises(ValueError):
+        nc.cite('apa')

@@ -162,3 +162,10 @@ fam = (v0 + c*linspace(0.3, 0, 12)).'; fam = fam./vecnorm(fam, 2, 2);
 verifyGreaterThan(tc, abs(V0'*v0), 1 - 1e-12); verifyGreaterThan(tc, abs(corr'*c), 1 - 1e-9);
 verifyGreaterThan(tc, mag, 0); verifyLessThan(tc, ncvd.escape([v0 c], corr), 1e-9);
 end
+
+function testCite(tc)
+s = ncvd.cite();
+verifyTrue(tc, contains(s, "10.5281/zenodo.23549069") && contains(s, "10.1016/j.ymssp.2024.111769"));
+verifyTrue(tc, contains(ncvd.cite("text"), "10.5281/zenodo.23549069"));
+verifyError(tc, @() ncvd.cite("apa"), ?MException);
+end

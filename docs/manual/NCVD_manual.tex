@@ -40,7 +40,7 @@
 \reportnumber{User manual}
 \author{Nonlinear Dynamics Laboratory}
 \date{October 2026}
-\runninghead{NCVD toolbox \textperiodcentered{} user manual \textperiodcentered{} github.com/nld-uri/ncvd-toolbox}
+\runninghead{NCVD toolbox \textperiodcentered{} user manual \textperiodcentered{} doi:10.5281/zenodo.23549069}
 
 \begin{document}
 \maketitle
@@ -69,6 +69,9 @@ The decomposition descends from the characteristic value decomposition (CVD)
 and its generalisation (GCVD) of Li, Stein and Chelidze~\cite{li2025}. It
 keeps their data model and quotient but changes how values and shapes are
 read out, and it adds the tools a practical identification needs.
+The toolbox is archived on Zenodo~\cite{ncvd2026}
+(doi:\href{https://doi.org/10.5281/zenodo.23549069}{10.5281/zenodo.23549069});
+Section~\ref{sec:cite} gives the citation.
 
 \paragraph{What is new relative to the published GCVD.}
 \begin{itemize}
@@ -106,7 +109,7 @@ Folder & Contents\\
 \code{python/examples/} & seven worked examples and the paper replication\\
 \code{python/tests/} & 28 unit tests, reference copy of the original \code{ncvd.py}\\
 \code{matlab/+ncvd/} & MATLAB package, base MATLAB R2022a or later, no toolboxes\\
-\code{matlab/examples/}, \code{matlab/tests/} & the same examples; 13 tests including Python cross-checks\\
+\code{matlab/examples/}, \code{matlab/tests/} & the same examples; 14 tests including Python cross-checks\\
 \code{docs/} & this manual, the slide deck and the animations\\
 \bottomrule
 \end{tabularx}
@@ -553,6 +556,37 @@ R2022a or later: \code{addpath('.../matlab')};
 every function. Figures use LaTeX text: in Python \code{plotting.set\_style()}
 (needs a TeX installation with \code{cm-super}), in MATLAB \code{ncvd.setStyle()}.
 
+\subsection{How to cite}\label{sec:cite}
+
+Please cite both the software~\cite{ncvd2026} and the method
+paper~\cite{li2025}. \code{ncvd.cite()} in Python and \code{ncvd.cite} in
+MATLAB print the BibTeX below; \code{CITATION.cff} in the repository gives the
+same entries through GitHub's \emph{Cite this repository} button.
+
+\begin{lstlisting}[language={}]
+@software{chelidze2026ncvd,
+  author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
+  title     = {{NCVD} toolbox: Nonlinear Characteristic Value
+               Decomposition for {Python} and {MATLAB}},
+  version   = {1.0.0},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23549069},
+  url       = {https://github.com/nld-uri/ncvd-toolbox}
+}
+@article{li2025cvd,
+  author  = {Li, Hewenxuan and Stein, Dalton L. and Chelidze, David},
+  title   = {Characteristic value decomposition: A unifying paradigm
+             for data-driven modal analysis},
+  journal = {Mechanical Systems and Signal Processing},
+  volume  = {222}, pages = {111769}, year = {2025},
+  doi     = {10.1016/j.ymssp.2024.111769}
+}
+\end{lstlisting}
+
+\noindent\code{@software} needs biblatex; with BibTeX use \code{@misc} with the
+same fields.
+
 \subsection{Functions}
 
 \begin{center}\small
@@ -636,14 +670,14 @@ Field & Meaning\\
 \section{Validation}
 
 \begin{itemize}
-  \item \textbf{Python, 28 tests}: reproduction of the original \code{ncvd.py}
+  \item \textbf{Python, 29 tests}: reproduction of the original \code{ncvd.py}
     to $10^{-10}$ (values) and $10^{-8}$ (shapes, coordinates), with and
     without whitening and the legacy readout; identities and poles to
     $10^{-9}$ or better; Propositions~\ref{prop:ls} and~\ref{prop:exact};
     time-unit invariance; FIR correction for five stencils; forcing; ensembles;
     DMD and ITD on clean data; tracking on linear and Duffing records; BCLS
     bias reduction; ROM helpers.
-  \item \textbf{MATLAB, 13 tests}, run on R2026b: the same checks, plus
+  \item \textbf{MATLAB, 14 tests}, run on R2026b: the same checks, plus
     cross-checks against stored Python results: clean values to $10^{-10}$,
     noisy values to $10^{-9}$ (LS), $10^{-8}$ (BCLS, diagonal readout, whitening)
     and $10^{-7}$ (TLS), the noise estimate to $10^{-8}$, FIR correction, tracking to
@@ -674,7 +708,10 @@ Field & Meaning\\
 \end{itemize}
 
 \begin{thebibliography}{9}\small
-\bibitem{li2025} H.-W.-X. Li, D.~L. Stein, D.~Chelidze, Characteristic value
+\bibitem{ncvd2026} D.~Chelidze, H.~Li, D.~L. Stein, NCVD toolbox: Nonlinear
+  Characteristic Value Decomposition for Python and MATLAB, version 1.0.0,
+  Zenodo (2026), doi:10.5281/zenodo.23549069.
+\bibitem{li2025} H.~Li, D.~L. Stein, D.~Chelidze, Characteristic value
   decomposition: A unifying paradigm for data-driven modal analysis,
   \emph{Mechanical Systems and Signal Processing} 222 (2025) 111769,
   doi:10.1016/j.ymssp.2024.111769.

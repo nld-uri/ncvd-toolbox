@@ -29,3 +29,5 @@
 %   simulateNonlinear, addNoise
 % Figures
 %   setStyle
+% Citation
+%   cite                 - BibTeX for the software (doi:10.5281/zenodo.23549069) and the method paper

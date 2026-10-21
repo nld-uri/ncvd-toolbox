@@ -291,9 +291,9 @@ notes(s, 'See Section 4.2 of the manual.')
 s = prs.slides.add_slide(layout(prs, 'NLD Two Column'))
 ph(s, 101).text = 'USING THE TOOLBOX \u00b7 GITHUB.COM/NLD-URI/NCVD-TOOLBOX'; ph(s, 102).text = 'The same calls in Python and MATLAB'
 for idx, lines in [(103, ['Python', 'import ncvd as nc', 'rec = nc.ncvd(d, v, a)', 'mp = nc.modal_parameters(rec.lam)',
-                          "tr = nc.track(d, v, a, fs=fs, length=800, step=400, M=M)", 'pytest: 28 tests']),
+                          "tr = nc.track(d, v, a, fs=fs, length=800, step=400, M=M)", 'pytest: 29 tests']),
                    (104, ['MATLAB', 'rec = ncvd.decompose(d, v, a);', 'mp = ncvd.modalParameters(rec.lam);',
-                          'tr = ncvd.track(d, v, a, Fs=fs, Length=800, Step=400, M=M);', "runtests: 13 tests, Python cross-checks"])]:
+                          'tr = ncvd.track(d, v, a, Fs=fs, Length=800, Step=400, M=M);', "runtests: 14 tests, Python cross-checks"])]:
     tf = ph(s, idx).text_frame; tf.clear()
     for i, ln in enumerate(lines):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()

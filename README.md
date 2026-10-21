@@ -41,7 +41,7 @@ Overview page: https://web.uri.edu/nld/ncvd-toolbox/
 ```bash
 git clone https://github.com/nld-uri/ncvd-toolbox.git
 cd ncvd-toolbox/python && pip install -e .[plot,test]
-python -m pytest -q                      # 28 tests
+python -m pytest -q                      # 29 tests
 python examples/ex01_linear_chain.py
 ```
 
@@ -59,7 +59,7 @@ MATLAB R2022a+ (base MATLAB, no toolboxes):
 addpath('matlab')
 rec = ncvd.decompose(disp, vel, acc);
 mp  = ncvd.modalParameters(rec.lam);
-results = runtests('matlab/tests/test_ncvd.m')   % 13 tests, incl. Python cross-checks
+results = runtests('matlab/tests/test_ncvd.m')   % 14 tests, incl. Python cross-checks
 ```
 
 ## Contents
