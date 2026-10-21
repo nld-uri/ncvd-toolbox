@@ -6,7 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "ncvd"
 version = "1.0.0"
 description = "Nonlinear Characteristic Value Decomposition: exact state-rate modal decomposition, FIR pole correction, ensemble and amplitude-dependent identification"
-authors = [{name = "Nonlinear Dynamics Laboratory, University of Rhode Island"}]
+authors = [
+  {name = "David Chelidze"},
+  {name = "Hewenxuan Li"},
+  {name = "Dalton L. Stein"},
+]
 requires-python = ">=3.9"
 license = {text = "MIT"}
 dependencies = ["numpy>=1.22", "scipy>=1.8"]

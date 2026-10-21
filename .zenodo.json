@@ -1,0 +1,18 @@
+{
+  "title": "NCVD toolbox: Nonlinear Characteristic Value Decomposition for Python and MATLAB",
+  "upload_type": "software",
+  "description": "Nonlinear Characteristic Value Decomposition (NCVD) for Python and MATLAB: exact state-rate modal decomposition, FIR pole correction, ensemble and amplitude-dependent identification of nonlinear systems (backbone curves, frequency-energy dependence), and reduced-order-model diagnostics. Developed at the Nonlinear Dynamics Laboratory, University of Rhode Island. Builds on and replicates Li, Stein and Chelidze, Mechanical Systems and Signal Processing 222 (2025) 111769.",
+  "creators": [
+    {"name": "Chelidze, David", "affiliation": "University of Rhode Island", "orcid": "0000-0003-0655-1439"},
+    {"name": "Li, Hewenxuan", "affiliation": "University of Rhode Island", "orcid": "0000-0003-4162-5026"},
+    {"name": "Stein, Dalton L.", "affiliation": "University of Rhode Island"}
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "keywords": ["characteristic value decomposition", "modal analysis", "output-only system identification", "nonlinear normal modes", "backbone curves", "reduced-order models"],
+  "related_identifiers": [
+    {"identifier": "10.1016/j.ymssp.2024.111769", "relation": "isSupplementTo", "scheme": "doi", "resource_type": "publication-article"},
+    {"identifier": "10.1007/s11071-024-10239-0", "relation": "references", "scheme": "doi", "resource_type": "publication-article"},
+    {"identifier": "https://web.uri.edu/nld/ncvd-toolbox/", "relation": "isDocumentedBy", "scheme": "url"}
+  ]
+}

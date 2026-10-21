@@ -75,11 +75,34 @@ results = runtests('matlab/tests/test_ncvd.m')   % 13 tests, incl. Python cross-
 
 ## How to cite
 
-If you use the toolbox, please cite
+Please cite the software (the Zenodo DOI of the release you used) and the method paper.
+GitHub's **Cite this repository** button (from `CITATION.cff`) gives both entries.
 
-- H.-W.-X. Li, D. L. Stein, D. Chelidze, Characteristic value decomposition: A unifying
-  paradigm for data-driven modal analysis, *Mechanical Systems and Signal Processing* 222
-  (2025) 111769. https://doi.org/10.1016/j.ymssp.2024.111769
+```bibtex
+@software{chelidze2026ncvd,
+  author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
+  title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},
+  version   = {1.0.0},
+  year      = {2026},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.XXXXXXX},
+  url       = {https://github.com/nld-uri/ncvd-toolbox}
+}
+
+@article{li2025cvd,
+  author  = {Li, Hewenxuan and Stein, Dalton L. and Chelidze, David},
+  title   = {Characteristic value decomposition: A unifying paradigm for data-driven modal analysis},
+  journal = {Mechanical Systems and Signal Processing},
+  volume  = {222},
+  pages   = {111769},
+  year    = {2025},
+  doi     = {10.1016/j.ymssp.2024.111769}
+}
+```
+
+`@software` needs biblatex; with BibTeX use `@misc` with the same fields.
+For the amplitude-dependent identification and ROM tools, please also cite
+
 - D. L. Stein, D. Chelidze, Continuation of nonlinear normal modes using reduced-order models
   based on generalized characteristic value decomposition, *Nonlinear Dynamics* 113 (2025)
   25–45. https://doi.org/10.1007/s11071-024-10239-0
