@@ -9,7 +9,7 @@ date-released: "2026-10-21"
 license: MIT
 repository-code: "https://github.com/nld-uri/ncvd-toolbox"
 url: "https://web.uri.edu/nld/ncvd-toolbox/"
-# doi: add the Zenodo concept DOI here after the first release
+doi: "10.5281/zenodo.23549069"
 keywords:
   - characteristic value decomposition
   - modal analysis
