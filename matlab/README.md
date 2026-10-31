@@ -15,5 +15,5 @@ results = runtests('tests/test_ncvd.m')  % 14 tests, including Python cross-chec
 ## How to cite
 
 `ncvd.cite` prints BibTeX for the software
-([doi:10.5281/zenodo.23549069](https://doi.org/10.5281/zenodo.23549069))
+([doi:10.5281/zenodo.23549068](https://doi.org/10.5281/zenodo.23549068))
 and the method paper (Li, Stein & Chelidze, MSSP 222 (2025) 111769). Please cite both.

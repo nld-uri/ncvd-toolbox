@@ -9,7 +9,7 @@ from latex2mathml.converter import convert
 
 RAW = 'https://raw.githubusercontent.com/nld-uri/ncvd-toolbox/main/docs/web/'
 GH = 'https://github.com/nld-uri/ncvd-toolbox'
-DOI = '10.5281/zenodo.23549069'
+DOI = '10.5281/zenodo.23549068'
 MSTYLE = "font-family:'Latin Modern Math','STIX Two Math','Cambria Math',math;font-size:1.05em"
 B = []
 

@@ -165,7 +165,7 @@ end
 
 function testCite(tc)
 s = ncvd.cite();
-verifyTrue(tc, contains(s, "10.5281/zenodo.23549069") && contains(s, "10.1016/j.ymssp.2024.111769"));
-verifyTrue(tc, contains(ncvd.cite("text"), "10.5281/zenodo.23549069"));
+verifyTrue(tc, contains(s, "10.5281/zenodo.23549068") && contains(s, "10.1016/j.ymssp.2024.111769"));
+verifyTrue(tc, contains(ncvd.cite("text"), "10.5281/zenodo.23549068"));
 verifyError(tc, @() ncvd.cite("apa"), ?MException);
 end

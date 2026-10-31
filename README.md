@@ -1,6 +1,6 @@
 # NCVD toolbox
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23549069.svg)](https://doi.org/10.5281/zenodo.23549069)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23549068.svg)](https://doi.org/10.5281/zenodo.23549068)
 
 **Nonlinear Characteristic Value Decomposition** for Python and MATLAB, from the
 [Nonlinear Dynamics Laboratory](https://web.uri.edu/nld/) at the University of Rhode Island.
@@ -77,17 +77,17 @@ results = runtests('matlab/tests/test_ncvd.m')   % 14 tests, incl. Python cross-
 
 ## How to cite
 
-Please cite the software ([doi:10.5281/zenodo.23549069](https://doi.org/10.5281/zenodo.23549069)) and the method paper.
+Please cite the software ([doi:10.5281/zenodo.23549068](https://doi.org/10.5281/zenodo.23549068), which resolves to the latest version; each release also has its own version DOI on Zenodo) and the method paper.
 GitHub's **Cite this repository** button (from `CITATION.cff`) gives both entries.
 
 ```bibtex
 @software{chelidze2026ncvd,
   author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
   title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},
-  version   = {1.0.0},
+  version   = {1.1.1},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.23549069},
+  doi       = {10.5281/zenodo.23549068},
   url       = {https://github.com/nld-uri/ncvd-toolbox}
 }
 

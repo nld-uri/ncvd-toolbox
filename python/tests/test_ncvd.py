@@ -259,7 +259,7 @@ def test_diag_readout_option_matches_benchmark(chain10):
 
 
 def test_cite():
-    assert nc.DOI == '10.5281/zenodo.23549069'
+    assert nc.DOI == '10.5281/zenodo.23549068'
     assert nc.DOI in nc.cite() and '10.1016/j.ymssp.2024.111769' in nc.cite()
     assert nc.DOI in nc.cite('text')
     with pytest.raises(ValueError):

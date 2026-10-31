@@ -31,9 +31,7 @@ def save(fig, anim, name, nframes, still_frame, still_only):
     if still_only:
         plt.close(fig); return
     w = FFMpegWriter(fps=30, codec='libx264', bitrate=4000,
-                     extra_args=['-pix_fmt', 'yuv420p', '-profile:v', 'main', '-level:v', '4.0', '-g', '30',
-                                 '-tag:v', 'avc1', '-colorspace', 'bt709', '-color_primaries', 'bt709',
-                                 '-color_trc', 'bt709', '-brand', 'mp42', '-movflags', '+faststart'])
+                     extra_args=['-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart'])
     anim.save(os.path.join(HERE, name + '.mp4'), writer=w, dpi=DPI)
     plt.close(fig)
     print('wrote', name)

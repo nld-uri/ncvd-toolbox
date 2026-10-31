@@ -1,14 +1,63 @@
 """Canonical Nonlinear Characteristic Value Decomposition (NCVD).
 
-THE DECOMPOSITION
------------------
+THE DECOMPOSITION (canonical definition, 27 Oct 2026)
+-----------------------------------------------------
 For a state record X1 = [disp, vel] and its rate X2 = [vel, acc],
 
-    X1 = U Phi^H ,      X2 = U Lam Phi^H + R ,      Lam = diag(lam) ,
+    (1)  X1 = U Phi^H ,     X2 = U Lam Phi^H + R ,     Lam = diag(lam) ,
 
 with U the temporal basis (characteristic coordinates), Phi the characteristic
 mode shapes, lam the characteristic values and R everything the diagonal form
 cannot represent (noise, nonlinearity, forcing that was not supplied).
+
+THE CANONICAL DECOMPOSITION IS (1) TOGETHER WITH (2):
+
+    (2)  M = X1^+ X2 ,  M E = E Lam ,  Phi = E^-H ,  U = X1 E ,
+         R = X2 - U Lam Phi^H
+
+i.e. the eigendecomposition of the least-squares operator map, with NO balanced
+quotient. E is the extractor (Phi^H E = I); Psi = conj(Phi) are the physical
+eigenvector shapes. Proposition: (2) is the unique minimiser of ||R|| over all
+(Phi invertible, Lam diagonal), because M = Phi^-H Lam Phi^H ranges over every
+diagonalisable matrix, so min ||R|| is the unconstrained least-squares floor.
+
+WHICH ROUTINE COMPUTES WHICH
+----------------------------
+`operators.ncvd_snapshot` implements (2) DIRECTLY and is the reference
+implementation of the definition; it is also the only one valid when X1 is rank
+deficient or has fewer rows than columns.
+
+`ncvd_pair` / `ncvd` below still compute the SAME result by the historical route
+through the balanced quotient Q, kept for backward compatibility and to
+reproduce the published diagonal readout. The two agree to 1.1e-14 in the poles
+and to MAC 1.000000000000 in the shapes. Q is scaffolding: see EQUIVALENCES.
+
+RELATION TO DMD, KOOPMAN GENERATORS AND OPERATOR INFERENCE
+----------------------------------------------------------
+Form (2) places the method exactly. With D a unit time shift it IS exact DMD
+(Tu et al., J. Comput. Dyn. 1:391, 2014, doi 10.3934/jcd.2014.1.391), defined
+there as the eigendecomposition of the least-squares one-step map. With
+D = d/dt it approximates the Koopman GENERATOR, the object estimated from state
+and derivative data by Klus et al. (Physica D 406:132416, 2020,
+doi 10.1016/j.physd.2020.132416); the same continuous-time operator is fitted by
+operator inference (Peherstorfer & Willcox, CMAME 306:196, 2016,
+doi 10.1016/j.cma.2016.03.025) and returned by the linear core of SINDy
+(Brunton et al., PNAS 113:3932, 2016, doi 10.1073/pnas.1517384113).
+"continuous-time DMD" is NOT an established term; do not use it.
+
+DO NOT claim the decomposition itself as a contrast with DMD -- it is DMD's
+algebra under a different operator. Two contrasts ARE defensible, and both
+follow from the operator rather than the algebra:
+  (a) the derivative form is ALIAS-FREE (3e-15 at dt = 8.1x Nyquist) where the
+      shift form fails past Nyquist (0.21 -> 0.98), and tolerates an 82x spread
+      in dt at 2.8e-14;
+  (b) for D = d/dt on [q, qdot], R is the residual of Newton's second law and
+      carries FORCE units, which licenses the localisation/order/class/memory
+      readouts in `diagnostics`; for the shift operator R is a one-step
+      prediction error with no physical reading.
+The price is that rates are needed: where they come from numerical
+differentiation, differentiation error competes with the aliasing error (a)
+avoids, and the advantage must be argued case by case.
 
 ALGORITHM (one path; every option below enters at a single step)
 ---------------------------------------------------------------
@@ -23,7 +72,7 @@ ALGORITHM (one path; every option below enters at a single step)
 4.  Sigma_2 = T Lam T^-1.  Rotate:  U = Xi T,  Phi = V T^-H.
 
 Step 4 makes both identities exact and pairs lam[i] with Phi[:, i] by
-construction.  The earlier GCVD readout used V itself as the shapes and the
+construction, and reproduces (2) exactly via E = V^-H T.  The earlier GCVD readout used V itself as the shapes and the
 diagonal of Sigma_2 as the poles; that is exact only when V diagonalises
 Sigma_2, which fails whenever the balanced map lam -> (lam + 1/lam)/2 (a
 Joukowski map) folds two poles onto nearly the same point.  This happens for
@@ -38,12 +87,26 @@ With E = V^-H T:   lam = eig(B),   B E = E Lam,   U = Y1 E,   Phi = E^-H.
 Hence the characteristic values and the column spaces of U and Phi do not
 depend on Q; Q fixes the normalisation of the columns and the conditioning of
 the intermediate steps.  With operator='ls' the characteristic values equal
-those of the least-squares state-rate operator.
+those of the least-squares state-rate operator -- which is why (2) is now the
+definition and this route is only one way to evaluate it.
+
+MEASURED, so the trade-off is not guessed: substituting random invertible
+matrices for V moved the poles by at most 1.9e-10 and the shapes by
+1-MAC 4.4e-16. On the folding case `time_scale='auto'` is needed only by the
+superseded DIAGONAL readout (wrong there by 1.0); the canonical readout is
+already at a 5.6e-15 pole error with condT 1.069 and no rescaling. Under (2)
+there is no second stage to condition at all -- the only conditioning left is
+cond(E), which is intrinsic to the data. The one case where Q genuinely
+re-enters is RANK DEFICIENCY, where the pseudo-inverse identity above fails and
+the answer becomes an artefact of whichever Q was formed; use
+`operators.ncvd_snapshot` or pass `rank`.
 
 Original implementation: D. Chelidze (ncvd.py).  This module extends it with
 operator choice, forcing, row weights, time scaling and sorting while
 reproducing it exactly for the default arguments (see tests/test_core.py).
 """
+import warnings
+
 import numpy as np
 
 __all__ = ['ncvd', 'ncvd_pair', 'decompose', 'NCVDResult', 'DEFAULT_RANK',
@@ -251,6 +314,15 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
 
     s_all = np.linalg.svd(Y1, compute_uv=False)
     if rank is None:
+        nr = int(np.sum(s_all > 1e-12*max(s_all[0], 1e-300)))
+        if nr < Y1.shape[1]:
+            warnings.warn(
+                f'Y1 has numerical rank {nr} < {Y1.shape[1]} columns. With rank=None the '
+                'pseudo-inverse makes the result depend on the balanced quotient Q, which '
+                'otherwise cancels exactly: on a rank-2-of-8 record, substituting a different '
+                '(equally valid) Q moved the poles by 48 and destroyed the shapes. Pass '
+                f'rank={nr} (or use operators.ncvd_snapshot, whose default is the numerical '
+                'rank) to make the decomposition well defined.', RuntimeWarning, stacklevel=3)
         Z1, Z2, back = Y1, Y2, None
     else:
         _, s_all, Wh = np.linalg.svd(Y1, full_matrices=False)
@@ -295,6 +367,7 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
     if F is not None:
         G = np.linalg.lstsq(F, Z2 - Z1 @ B, rcond=None)[0]
 
+    Emat = None
     if readout == 'diag':
         lam = np.diag(S2).copy()
         T = np.eye(len(lam), dtype=complex)
@@ -308,19 +381,23 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
         lam, T = np.linalg.eig(S2)                       # Sigma_2 = T Lam T^-1
         W, U = V @ np.linalg.inv(T).conj().T, Xi @ T     # Phi = V T^-H, U = Xi T
         share = np.ones(len(lam))
+        Emat = VmH @ T                                   # extractor: U = Y1 E, Phi = E^-H
 
     if sort:
         o = _sort_order(lam)
         lam, W, U, share = lam[o], W[:, o], U[:, o], share[o]
         if readout != 'diag' and not legacy_balanced:
             T = T[:, o]
+            if Emat is not None:
+                Emat = Emat[:, o]
     Phi = W if back is None else back @ W
     fit = (U*lam) @ W.conj().T
     if G is not None:
         fit = fit + F @ G
     R = Z2 - fit
     return NCVDResult(
-        lam=lam, Phi=Phi, Psi=Phi.conj(), U=U, R=R, V=V, T=T, S2=S2, s=s_all, share=share, B=B, G=G,
+        lam=lam, Phi=Phi, Psi=Phi.conj(), E=Emat, U=U, R=R, V=V, T=T, S2=S2, s=s_all,
+        share=share, B=B, G=G,
         condT=float(np.linalg.cond(T)), condV=float(np.linalg.cond(V)), resid=resid,
         res=float(np.linalg.norm(R)/max(np.linalg.norm(Z2), 1e-300)),
         exact1=float(np.linalg.norm(Z1 - U @ W.conj().T)/max(np.linalg.norm(Z1), 1e-300)),

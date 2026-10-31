@@ -4,7 +4,7 @@ function out = cite(fmt)
 %   ncvd.cite("text")    prints plain-text references
 %   s = ncvd.cite(...)   returns the text instead of printing it
 %
-%   Software: doi:10.5281/zenodo.23549069
+%   Software: doi:10.5281/zenodo.23549068
 %   Method:   doi:10.1016/j.ymssp.2024.111769
 arguments
     fmt (1,1) string {mustBeMember(fmt, ["bibtex", "text"])} = "bibtex"
@@ -15,10 +15,10 @@ if fmt == "bibtex"
         "@software{chelidze2026ncvd,"
         "  author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},"
         "  title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},"
-        "  version   = {1.0.0},"
+        "  version   = {1.1.1},"
         "  year      = {2026},"
         "  publisher = {Zenodo},"
-        "  doi       = {10.5281/zenodo.23549069},"
+        "  doi       = {10.5281/zenodo.23549068},"
         "  url       = {https://github.com/nld-uri/ncvd-toolbox}"
         "}"
         ""
@@ -33,7 +33,7 @@ if fmt == "bibtex"
         "}"], nl);
 else
     s = strjoin([ ...
-        "D. Chelidze, H. Li, D. L. Stein, NCVD toolbox: Nonlinear Characteristic Value Decomposition for Python and MATLAB, version 1.0.0, Zenodo (2026). https://doi.org/10.5281/zenodo.23549069"
+        "D. Chelidze, H. Li, D. L. Stein, NCVD toolbox: Nonlinear Characteristic Value Decomposition for Python and MATLAB, version 1.1.1, Zenodo (2026). https://doi.org/10.5281/zenodo.23549068"
         ""
         "H. Li, D. L. Stein, D. Chelidze, Characteristic value decomposition: A unifying paradigm for data-driven modal analysis, Mechanical Systems and Signal Processing 222 (2025) 111769. https://doi.org/10.1016/j.ymssp.2024.111769"], nl);
 end
