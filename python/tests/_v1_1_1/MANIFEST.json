@@ -1,0 +1,38 @@
+{
+  "description": "Byte-exact copy of python/ncvd/ at tag v1.1.1, used by test_release_112.py to check that every default call of 1.1.2 returns what 1.1.1 returns. Hashes are git blob SHA-1 values (git hash-object), so the copy can be checked against the tag without a git checkout. matlab_v111 lists the blobs of the MATLAB files whose v1.1.1 versions are kept, renamed, in matlab/tests/v111/; matlab_untouched lists files that 1.1.2 must leave byte-identical.",
+  "tag": "v1.1.1",
+  "tag_object": "4c9624bdd9879f151f4e0f9d966c0d33a827997c",
+  "commit": "4c9624bdd9879f151f4e0f9d966c0d33a827997c",
+  "python": {
+    "__init__.py": "5ce5edb47745d8c80fb4fabd040f1fd84bf7bd39",
+    "benchmarks.py": "ad693926542ee3f9d3b2eeb7c944bf25339c1401",
+    "cite.py": "a98df371088b36d4cad803b72fbb2ba4ca71db60",
+    "core.py": "39e92e34f1c7d88880a7056e95503204f0b58de4",
+    "diagnostics.py": "eabde7b55fed985aa1a315006325b3d71b196204",
+    "ensemble.py": "75c25853397eaf0584c64be758129a873e787e8f",
+    "kinematics.py": "e381086133d2b743d4e2c955ff0f7314c99baa72",
+    "modal.py": "afdabe42bbebb6d61c28ee3645cb7401fdaf1526",
+    "operators.py": "faf856967e69fade639449785cbd98c7fd0e7964",
+    "plotting.py": "391cdf9e018df8f9c4f890077b9a110c081100d0",
+    "refine.py": "7a69d79d214ebb5fff2062fd2d34f3c895718e36",
+    "rom.py": "658ff412939200787cb8f582e60e60ef29bdf78a",
+    "systems.py": "d5e44c91a4126f105f3efbae94976c139fdd6f25",
+    "tracking.py": "d94b37b494415f92b23c04eae344c92316ac0379"
+  },
+  "matlab_v111": {
+    "closure.m": "9919c1d1890444d05b6a574c0870dde1709c9f63",
+    "decompose.m": "28ac81eec7d2ad7e0b9f657e7e1a8e5195e73859",
+    "decomposePair.m": "222e60aa3c1217dbed75b9f28eff34d621880bed",
+    "track.m": "e8b505c740428e82335e1c7d9772253811bd3d76"
+  },
+  "matlab_untouched": {
+    "deflate.m": "781aa25ffe55f41f573765ccf1a532acc0324682",
+    "escape.m": "32933a43b9803bd8e701861c53831a8d2e925489",
+    "matchModes.m": "dafe86cf7d13a9321e604bbbfd6fe6579aa66ce8",
+    "physicalModes.m": "ee9b4cd6ff840dcb0ce8cbb3926916b5037b5a67",
+    "project.m": "69015102fafabdc1d11ad36f3a89c16521b0a5b8",
+    "realify.m": "08e69631c9ae14a0097681fb2b28c900bfa04c85",
+    "robustnessBasis.m": "db8d5334e221b02232b90d59b0fa9bb0d02445db",
+    "windowEdges.m": "1f928e865376a306141373e22cd7f2648ed560e6"
+  }
+}
