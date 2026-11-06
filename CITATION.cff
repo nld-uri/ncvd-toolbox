@@ -4,8 +4,8 @@ message: >-
   Zenodo) and the article listed under preferred-citation.
 type: software
 title: "NCVD toolbox: Nonlinear Characteristic Value Decomposition for Python and MATLAB"
-version: 1.1.1
-date-released: "2026-10-27"
+version: 1.1.2
+date-released: "2026-11-06"
 license: MIT
 repository-code: "https://github.com/nld-uri/ncvd-toolbox"
 url: "https://web.uri.edu/nld/ncvd-toolbox/"

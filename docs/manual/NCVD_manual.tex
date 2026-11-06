@@ -36,11 +36,11 @@
 \lstset{style=nld}
 
 \title{NCVD toolbox}
-\subtitle{User manual for the Nonlinear Characteristic Value Decomposition\\ in Python and MATLAB, version 1.0}
+\subtitle{User manual for the Nonlinear Characteristic Value Decomposition\\ in Python and MATLAB, version 1.0, with the tracking options of 1.1.2}
 \reportnumber{User manual}
 \author{Nonlinear Dynamics Laboratory}
-\date{October 2026}
-\runninghead{NCVD toolbox \textperiodcentered{} user manual \textperiodcentered{} doi:10.5281/zenodo.23549069}
+\date{October 2026; Section~4.3 November 2026}
+\runninghead{NCVD toolbox \textperiodcentered{} user manual \textperiodcentered{} doi:10.5281/zenodo.23549068}
 
 \begin{document}
 \maketitle
@@ -66,7 +66,7 @@ linear record. For noisy, forced or nonlinear data, $\R$ is the least-squares
 remainder.
 
 The decomposition descends from the characteristic value decomposition (CVD)
-and its generalisation (GCVD) of Li, Stein and Chelidze~\cite{li2025}. It
+and its generalization (GCVD) of Li, Stein and Chelidze~\cite{li2025}. It
 keeps their data model and quotient but changes how values and shapes are
 read out, and it adds the tools a practical identification needs.
 The toolbox is archived on Zenodo~\cite{ncvd2026}
@@ -202,7 +202,7 @@ Step~4 is the change.
 Let $\Q$ and $\Sg_2$ be diagonalisable and $\E=\V^{-\H}\T$. Then $\B\E=\E\Lam$,
 $\U=\Y_1\E$ and $\Ph=\E^{-\H}$ for whichever operator $\B$ is used. Hence
 $\lambda_i$ are the eigenvalues of $\B$, and the column spaces of $\U$ and
-$\Ph$ do not depend on $\Q$; $\Q$ fixes the normalisation of the columns and
+$\Ph$ do not depend on $\Q$; $\Q$ fixes the normalization of the columns and
 the conditioning of the intermediate steps. For the default
 \code{operator='ls'} without forcing, $\B=\Y_1^\dagger\Y_2$, so the values are
 least-squares values and $\R=(\mathbf{I}-\Y_1\Y_1^\dagger)\Y_2$ (in whitened or
@@ -457,7 +457,7 @@ The values do not depend on the time unit, but the balanced quotient does
 $1/c$ while forming $\Q$; \code{'auto'} chooses $c=\min|\lambda_{\mathrm{LS}}|/2$
 so that every pole has modulus at least 2, where the Joukowski map is
 one-to-one. With the canonical readout the values are exact either way.
-The option makes $\V$ nearly diagonalise $\Sg_2$ (\code{condT} close to 1),
+The option makes $\V$ nearly diagonalize $\Sg_2$ (\code{condT} close to 1),
 which keeps the intermediate steps well conditioned and makes the published
 and canonical readouts agree. \code{track} uses \code{'auto'} by default.
 
@@ -482,18 +482,18 @@ tr = nc.track(d, v, a, fs=fs, length=800, step=400, n_track=3, M=M)
 tr.wd, tr.zeta, tr.energy, tr.shape, tr.mpc, tr.res      # per window and mode
 f1 = [nc.band_frequency(d[s:e, 0], 1/fs, 0.6, 1.1) for s, e in tr.edges]
 \end{lstlisting}
-Consecutive windows are matched by minimising $(1-\mathrm{MAC})+|\log(\omega/\omega_{\mathrm{prev}})|$
+Consecutive windows are matched by minimizing $(1-\mathrm{MAC})+|\log(\omega/\omega_{\mathrm{prev}})|$
 as an assignment problem. With a mass matrix, \code{amp} and \code{energy}
-are mass-normalised modal amplitude and energy.
+are mass-normalized modal amplitude and energy.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=\linewidth]{figures/ex05_duffing_backbone.pdf}
   \caption{Example 5: 3-DOF chain with a cubic spring ($k_3=1$) grounding the
   first mass, damping $0.003\mathbf{M}$, one free decay of 1500 s, windows of
-  40 s every 20 s. Left: damped frequency against modal energy, normalised by
+  40 s every 20 s. Left: damped frequency against modal energy, normalized by
   the linear value; crosses are the measured response frequency of mode~1 in
-  each window (largest difference 1.5\,\%). Centre: window residual. Right:
+  each window (largest difference 1.5\,\%). Center: window residual. Right:
   shape change between consecutive windows.}
   \label{fig:backbone}
 \end{figure}
@@ -524,6 +524,58 @@ are mass-normalised modal amplitude and energy.
     each window engages the nonlinearity (and noise). It is not a calibrated measure.
 \end{itemize}
 
+\subsection{Opt-in tracking protocol (release 1.1.2)}\label{sec:track112}
+
+Release 1.1.2 leaves every default of \code{track} as it was in 1.1.1, so that
+published results reproduce, and adds the remedies for four weaknesses of that
+procedure as options. \code{windowed(d, v, a, fs, ...)} is \code{track} with
+all of them switched on and \code{center=False}, the setting for a free decay
+about one equilibrium.
+\begin{itemize}
+  \item \textbf{Rank} (\code{rank='auto'}). The default \code{rank=None} keeps
+    every direction of $[\mathbf{q},\dot{\mathbf{q}}]$. On a rank-deficient
+    window (a release along one mode, a symmetric chain) the extra poles are
+    then null-space eigenvalues, and they change with the balanced quotient.
+    \code{'auto'} keeps $r=\min_w r_w$ with
+    $r_w=\#\{i: s_{w,i}>\epsilon\, s_{w,1}\}$, $\epsilon=10^{-12}$
+    (\code{rank\_rtol}), the singular values $s_{w,i}$ of the window (after
+    centering when \code{center=True}); \code{rank\_gap} additionally cuts $r_w$ at the first ratio
+    $s_{w,i}/s_{w,i+1}$ above it. The rank, the per-window ranks and the
+    singular values are returned (\code{rank}, \code{rank\_windows},
+    \code{sv}); an integer \code{rank} overrides the rule.
+  \item \textbf{Two families} (\code{families=True}, needs \code{fs}). A pole
+    $\lambda$ is \emph{harmonic} if $\operatorname{Im}\lambda>0$ and it completes
+    at least one damped cycle in the window,
+    $|\operatorname{Im}\lambda|\,T_w/(2\uppi)\ge 1$ (\code{min\_cycles}), with
+    $T_w$ the window duration. Real poles and slower pairs form the
+    \emph{zero-frequency} family: with \code{center=False} the decaying static
+    offset of a quadratic nonlinearity appears there, as a real pole or as a
+    slow pair whose damping ratio need not be large (0.06 on one test record).
+    That family is tracked separately in \code{tr.zero}, with its shapes and
+    displacement amplitudes, and is never seeded as a harmonic master.
+  \item \textbf{Seeding} (\code{seed}). The default takes the lowest damped
+    frequencies of the first window. \code{'energy'} takes the largest modal
+    energies $E_i=\langle \mathbf{v}_i^{\mathsf{T}}\mathbf{M}\mathbf{v}_i\rangle_t$
+    of the poles' own velocity contributions
+    $\mathbf{v}_i(t)=2\operatorname{Re}\bigl(u_i(t)\,\symbf{\psi}_{v,i}\bigr)$
+    ($\mathbf{M}=\mathbf{I}$ without a mass matrix); \code{'participation'}
+    uses the displacement contributions; a list of frequencies selects the
+    nearest distinct poles. \code{tr.seed\_score} returns each track's share.
+  \item \textbf{Identity} (\code{matching='identity'}, \code{max\_cost}). Each
+    window solves the rectangular assignment between tracks and candidates on
+    $(1-\mathrm{MAC})+w_f|\log(|\lambda|/|\lambda_{\mathrm{ref}}|)|$, where the
+    reference is the track's last \emph{assigned} window. A track without a
+    candidate, or whose cost exceeds \code{max\_cost}, is a gap: NaN in every
+    per-window array and \code{True} in \code{tr.gap}. It is never relabeled,
+    and it is recovered when its mode returns. \code{tr.cost} holds every
+    proposed cost, accepted or rejected.
+\end{itemize}
+\begin{lstlisting}[language=Python]
+tr = nc.windowed(d, v, a, fs, n_windows=6, n_track=1, M=M)
+tr.wd[:, 0], tr.cost, tr.gap, tr.rank        # master, costs, gaps, rank
+tr.zero.lam, tr.zero.shape                   # zero-frequency (static-offset) family
+\end{lstlisting}
+
 \subsection{Reduced-order-model diagnostics}\label{sec:rom}
 
 The \code{rom} module works with the family of shapes one resonance takes over
@@ -534,6 +586,13 @@ $\mathbf{v}_0$, leading amplitude correction and its relative size),
 \code{closure} (smallest retained set that contains the first $k$ corrections)
 and \code{project} (Galerkin projection of $\mathbf{M}$, $\mathbf{K}$, $\mathbf{C}$
 and the nonlinear force).
+
+A deflation correction is orthogonal to the $\mathbf{v}_0$ of its own family,
+so \code{closure([v0], c, k=1)} with one tracked mode can never be met and
+returns \code{None}. Since 1.1.2, \code{closure} with \code{strict=True}
+raises an error that gives the reason instead, and \code{family\_closure}
+returns the closure of one family, $P=1+\#\{i:\sigma_i\ge\mathrm{tol}\}$ with
+$\sigma_i$ the deflation singular values relative to the family's leading one.
 
 \begin{remark}
 These quantities are built from differences of shapes. By
@@ -568,10 +627,10 @@ same entries through GitHub's \emph{Cite this repository} button.
   author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
   title     = {{NCVD} toolbox: Nonlinear Characteristic Value
                Decomposition for {Python} and {MATLAB}},
-  version   = {1.0.0},
+  version   = {1.1.2},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.23549069},
+  doi       = {10.5281/zenodo.23549068},
   url       = {https://github.com/nld-uri/ncvd-toolbox}
 }
 @article{li2025cvd,
@@ -611,9 +670,11 @@ Python (\code{import ncvd as nc}) & MATLAB (\code{ncvd.*}) & Purpose\\
 \code{state\_from\_displacement} & \code{stateFromDisplacement} & consistent $(\mathbf{q},D\mathbf{q},DD\mathbf{q})$\\
 \code{correct\_poles} & \code{correctPoles} & exact FIR pole correction\\
 \code{track}, \code{window\_edges} & \code{track}, \code{windowEdges} & sliding windows and tracking\\
+\code{windowed} & \code{windowed} & tracking with the 1.1.2 protocol\\
+\code{numerical\_rank} & \code{numericalRank} & declared rank rule of \code{rank='auto'}\\
 \code{band\_frequency} & \code{bandFrequency} & measured frequency for validation\\
 \code{ncvd\_ensemble} & \code{ensemble} & joint NCVD of several records\\
-\code{rom.robustness\_basis}, \code{rom.deflate}, \code{rom.escape}, \code{rom.closure}, \code{rom.project} & \code{robustnessBasis}, \code{deflate}, \code{escape}, \code{closure}, \code{project} & ROM diagnostics\\
+\code{rom.robustness\_basis}, \code{rom.deflate}, \code{rom.escape}, \code{rom.closure}, \code{rom.family\_closure}, \code{rom.project} & \code{robustnessBasis}, \code{deflate}, \code{escape}, \code{closure}, \code{familyClosure}, \code{project} & ROM diagnostics\\
 \code{benchmarks.gcvd}, \code{.dmd}, \code{.itd} & \code{gcvd}, \code{dmd}, \code{itd} & published GCVD readout, DMD~\cite{schmid2010}, ITD~\cite{ibrahim1982}\\
 \code{systems.*} & \code{chain}, \code{paperChain10}, \dots & test systems, simulation, noise\\
 \code{plotting.set\_style} & \code{setStyle} & LaTeX text and palettes\\
@@ -709,8 +770,8 @@ Field & Meaning\\
 
 \begin{thebibliography}{9}\small
 \bibitem{ncvd2026} D.~Chelidze, H.~Li, D.~L. Stein, NCVD toolbox: Nonlinear
-  Characteristic Value Decomposition for Python and MATLAB, version 1.0.0,
-  Zenodo (2026), doi:10.5281/zenodo.23549069.
+  Characteristic Value Decomposition for Python and MATLAB, version 1.1.2,
+  Zenodo (2026), doi:10.5281/zenodo.23549068.
 \bibitem{li2025} H.~Li, D.~L. Stein, D.~Chelidze, Characteristic value
   decomposition: A unifying paradigm for data-driven modal analysis,
   \emph{Mechanical Systems and Signal Processing} 222 (2025) 111769,

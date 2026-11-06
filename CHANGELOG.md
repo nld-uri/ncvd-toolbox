@@ -1,5 +1,98 @@
 # NCVD toolbox changelog
 
+## 1.1.2 -- 2026-11-06
+
+**The published procedure is unchanged.** Every default call returns what 1.1.1 returns;
+each remedy below is opt-in (a new keyword argument or a new function, off by default).
+`python/tests/test_release_112.py` runs 20 default calls of `track`, `ncvd`, `ncvd_pair`,
+`closure`, `robustness_basis`, `deflate` and `escape` on five synthetic records under this
+version and under a byte-exact copy of the v1.1.1 package (`python/tests/_v1_1_1/`,
+checked against the tag's git blobs) and requires agreement to 1e-12 relative. They agree
+exactly, because the default path of `track` is the 1.1.1 source (`_track_v111`, checked
+line for line). `matlab/tests/test_ncvd.m/testDefaultsMatchV111` does the same against the
+tag's MATLAB functions kept as `matlab/tests/v111/*_v111.m`. Only the version strings
+(`__version__`, `cite()`, `Contents.m`, `CITATION.cff`) change on a default call.
+
+### Four weaknesses of the 1.1.1 tracker, kept on the default path, with opt-in remedies
+
+Each is reproduced by a synthetic record in `python/tests/_records.py` and pinned by a
+witness test on the default path.
+
+1. **Seeding.** `track(n_track=k)` takes the k lowest-frequency poles with Im(lam) > 0 of
+   window 0. With `center=False` the decaying static offset of a quadratic nonlinearity is
+   such a pole. On record A (quadratic-cubic slow-fast decay) the default seeds on
+   0.0385 rad/s (zeta 0.87, 0.31 cycles per window) and then follows the 2 Omega harmonic
+   (2.009 rad/s), never the master (1.007 rad/s). On a rank-deficient window the lowest pole
+   can be a null-space eigenvalue of modulus 1e-16.
+   Remedies: `seed='energy'` (largest modal energy of the pole's own velocity
+   contribution), `seed='participation'`, or a list of target frequencies; and
+   `families=True` (needs `fs`), which tracks harmonic poles (at least `min_cycles` = 1
+   damped cycle per window) separately from the zero-frequency family (real poles and slower
+   pairs). The zero-frequency family is reported with its shapes in `tr.zero` and is never
+   seeded as a harmonic master. On record A, `windowed()` tracks the master in all six
+   windows (1.0074 to 1.0006 rad/s, within 0.12 % of the FFT peak of the master coordinate).
+2. **Identity.** When a window has fewer pairs than tracks, the Python 1.1.1 tracker
+   discards the assignment's row indices and writes the candidates into tracks 0, 1, ...
+   On record B (exact piecewise-linear record, mode 2 real in windows 2-3) mode 3 is written
+   into the mode-2 track and mode 2 is never recovered. MATLAB 1.1.1 keeps the row indices
+   but stores a zero reference for the missing track, so that track cannot be recovered
+   either. Remedy: `matching='identity'`. The assignment is against each track's last
+   assigned window; a missing or rejected match is a gap (NaN, `tr.gap`); the proposed costs
+   are returned in `tr.cost`; `max_cost` rejects poor matches (record B2: an unrelated pole
+   that replaces mode 2 at cost 1.21 is rejected at `max_cost=0.5`).
+3. **Closure with one tracked mode.** `closure(V0=[v0], corrections=[c], k=1)` returns
+   `None`, because a deflation correction is orthogonal to the v0 of its own family, so the
+   only candidate P = 1 can never close. Remedies: `closure(..., strict=True)` raises
+   ValueError (MATLAB: `ncvd:closure`) stating the reason (degenerate posing, too few
+   correction columns, or not met within `p_max`); the new `rom.family_closure(shapes, tol)`
+   returns the closure of one shape family, P = 1 + #(relative deflation singular values
+   >= tol).
+4. **Rank.** `rank=None` keeps every direction of [disp, vel]. On record D (linear 4-DOF
+   chain released in mode 1, rank 2 of 8) three of the four tracked "modes" are null-space
+   eigenvalues, and their values change when the balanced quotient is replaced by another
+   valid one. Remedy: `rank='auto'` in `track`, `ncvd` and `ncvd_pair`. It uses the declared
+   rule `numerical_rank(s, rtol=1e-12, gap=None)` (relative threshold, optional first-gap
+   cut), taking the minimum over windows in `track`. The rank used, the per-window ranks, the
+   rule and the singular values are returned; an integer `rank` remains the explicit
+   override. On record D the tracked pole equals the true pole to 8.9e-16 and does not change
+   with the quotient.
+
+### New functions
+
+* `windowed(disp, vel, acc, fs, ...)` (MATLAB `ncvd.windowed`): `track` with every remedy
+  on: `center=False, rank='auto', seed='energy', families=True, matching='identity',
+  max_cost=0.5`. Earlier work assumed a `windowed` function that did not exist; the 1.1.1
+  windowed path is `track(..., center=False)` with its defaults, which is unchanged.
+* `numerical_rank` (MATLAB `ncvd.numericalRank`), `rom.family_closure` (MATLAB
+  `ncvd.familyClosure`).
+
+### Unchanged on purpose
+
+* `rom.robustness_basis`, `rom.deflate`, `rom.escape`, `rom.project`, `rom.augment`,
+  `rom.residual_augmentation` and their MATLAB counterparts are byte-identical to 1.1.1
+  (tested). The toolbox has no function that builds a resonance robustness matrix S_m by
+  frequency band: `robustness_basis(shapes, rank=None, tol=1e-3)` takes one resonance's
+  shape family as given and returns its SVD basis and normalized singular values.
+* Python and MATLAB 1.1.1 defaults differ when a window has fewer pairs than tracks
+  (Python relabels; MATLAB leaves a NaN but loses the track's reference). Both are published
+  behavior and are kept. The opt-in identity matching is the same in both languages.
+* MATLAB `closure` raises an index error when `corrections` has fewer than k columns, while
+  Python truncates silently. Kept; `strict=True` raises in both.
+
+### Still open
+
+* The two known issues of 1.1.1 (`systems.simulate_nonlinear` callback shape,
+  `diagnostics.channel_slopes` signed mask) are not addressed in this release.
+* Code docstrings carried over from earlier releases still contain British spellings; they
+  are left verbatim because the tests check the 1.1.1 functions byte for byte.
+
+### Tests
+
+Python: 48 (1.1.1) -> 94, all passing (20 default-agreement calls, 5 defect witnesses,
+16 opt-in tests, 5 integrity checks). MATLAB: 14 -> 23 test functions. The MATLAB changes
+were parsed with MISS_HIT 0.9.44 (no syntax errors) but NOT RUN: MATLAB could not start in
+the build environment. Run `runtests('matlab/tests/test_ncvd.m')` before publishing.
+
 ## 1.1.1 -- 2026-10-27
 
 ### Known issues (found after release, 29-31 Oct 2026; not fixed in this version)
@@ -37,8 +130,8 @@ estimator variants (TLS, bias-compensated LS) remain in `core.ncvd_pair` by desi
 
 ## 1.1.0 -- 2026-10-27
 
-Adds the operator generalisation, residual diagnostics and iterative refinement.
-No existing API changed behaviour; the 29 tests of 1.0.0 still pass unmodified
+Adds the operator generalization, residual diagnostics and iterative refinement.
+No existing API changed behavior; the 29 tests of 1.0.0 still pass unmodified
 (44 pass in total).
 
 ### New: `ncvd.operators` -- NCVD under an arbitrary linear operator

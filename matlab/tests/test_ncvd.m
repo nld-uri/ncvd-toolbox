@@ -1,13 +1,19 @@
 function tests = test_ncvd
 %TEST_NCVD  Unit tests and Python cross-checks for the NCVD toolbox.
 %   Run from the matlab folder:  results = runtests('tests/test_ncvd.m')
+%   The 1.1.2 tests at the end check that every default call equals the
+%   1.1.1 function (tests/v111) to 1e-12 relative, and cross-check the opt-in
+%   tracking options against Python (reference_112.mat, written by
+%   python/tests/make_matlab_reference_112.py).
 tests = functiontests(localfunctions);
 end
 
 function setupOnce(tc)
 here = fileparts(mfilename('fullpath'));
 addpath(fullfile(here, '..'));
+addpath(fullfile(here, 'v111'));                % the 1.1.1 functions, renamed *_v111
 tc.TestData.ref = load(fullfile(here, 'reference.mat'));
+tc.TestData.r112 = load(fullfile(here, 'reference_112.mat'));
 [M, C, K] = ncvd.paperChain10();
 t = (0:0.05:60-0.05)';
 tc.TestData.M = M; tc.TestData.C = C; tc.TestData.K = K;
@@ -168,4 +174,186 @@ s = ncvd.cite();
 verifyTrue(tc, contains(s, "10.5281/zenodo.23549068") && contains(s, "10.1016/j.ymssp.2024.111769"));
 verifyTrue(tc, contains(ncvd.cite("text"), "10.5281/zenodo.23549068"));
 verifyError(tc, @() ncvd.cite("apa"), ?MException);
+end
+
+% ------------------------------------------------------------ release 1.1.2
+function r = rec112(tc, name)
+q = tc.TestData.r112;
+r = {q.([name '_d']), q.([name '_v']), q.([name '_a'])};
+end
+
+function sameOutput(tc, fNew, fOld, label)
+% Both calls must fail with the same identifier or agree to 1e-12 relative.
+eNew = ''; eOld = ''; a = []; b = [];
+try, a = fNew(); catch ME, eNew = ME.identifier; if isempty(eNew), eNew = ME.message; end, end
+try, b = fOld(); catch ME, eOld = ME.identifier; if isempty(eOld), eOld = ME.message; end, end
+verifyEqual(tc, eNew, eOld, label + ": error differs");
+if isempty(eNew), sameValue(tc, a, b, label); end
+end
+
+function sameValue(tc, a, b, label)
+if isstruct(a) || isstruct(b)
+    verifyTrue(tc, isstruct(a) && isstruct(b), label + ": struct vs non-struct");
+    fa = sort(fieldnames(a)); fb = sort(fieldnames(b));
+    verifyEqual(tc, fa, fb, label + ": fields differ");
+    if ~isequal(fa, fb), return; end
+    for i = 1:numel(fa), sameValue(tc, a.(fa{i}), b.(fa{i}), label + "." + fa{i}); end
+    return
+end
+if isstring(a) || ischar(a) || islogical(a) || isempty(a) || isempty(b)
+    verifyEqual(tc, a, b, label); return
+end
+verifyEqual(tc, size(a), size(b), label + ": size");
+if ~isequal(size(a), size(b)), return; end
+na = isnan(a); nb = isnan(b);
+verifyEqual(tc, na, nb, label + ": NaN pattern");
+f = ~na & ~nb;
+if any(f(:))
+    sc = max(max(abs(b(f))), 1e-300);
+    verifyLessThanOrEqual(tc, max(abs(a(f) - b(f))), 1e-12*sc, label);
+end
+end
+
+function testDefaultsMatchV111(tc)
+% Every default call of 1.1.2 returns what 1.1.1 returns (tests/v111/*_v111.m
+% are the tag's files with only the function name changed).
+q = tc.TestData.r112;
+A = rec112(tc, 'A'); B = rec112(tc, 'B'); B2 = rec112(tc, 'B2');
+C = rec112(tc, 'C'); D = rec112(tc, 'D');
+sameOutput(tc, @() ncvd.track(A{:}, Fs=20, NWindows=6, NTrack=1, M=q.A_M, Center=false), ...
+    @() track_v111(A{:}, Fs=20, NWindows=6, NTrack=1, M=q.A_M, Center=false), "track A");
+sameOutput(tc, @() ncvd.track(A{:}, Fs=20, NWindows=6), @() track_v111(A{:}, Fs=20, NWindows=6), "track A all");
+sameOutput(tc, @() ncvd.track(B{:}, Fs=20, NWindows=6, NTrack=3), ...
+    @() track_v111(B{:}, Fs=20, NWindows=6, NTrack=3), "track B");
+sameOutput(tc, @() ncvd.track(B{:}, Fs=20, Length=1500, Step=750), ...
+    @() track_v111(B{:}, Fs=20, Length=1500, Step=750), "track B overlap");
+sameOutput(tc, @() ncvd.track(B2{:}, Fs=20, NWindows=6, NTrack=3), ...
+    @() track_v111(B2{:}, Fs=20, NWindows=6, NTrack=3), "track B2");
+sameOutput(tc, @() ncvd.track(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M), ...
+    @() track_v111(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M), "track C");
+sameOutput(tc, @() ncvd.track(C{:}, Fs=20, NWindows=10, Rank=4), ...
+    @() track_v111(C{:}, Fs=20, NWindows=10, Rank=4), "track C rank 4");
+sameOutput(tc, @() ncvd.track(D{:}, Fs=20, NWindows=4), @() track_v111(D{:}, Fs=20, NWindows=4), "track D");
+sameOutput(tc, @() ncvd.track(D{:}, NWindows=4), @() track_v111(D{:}, NWindows=4), "track D no Fs");
+sameOutput(tc, @() ncvd.decompose(A{:}), @() decompose_v111(A{:}), "decompose A");
+sameOutput(tc, @() ncvd.decompose(A{:}, Center=true, TimeScale="auto"), ...
+    @() decompose_v111(A{:}, Center=true, TimeScale="auto"), "decompose A centered");
+sameOutput(tc, @() ncvd.decomposePair([D{1} D{2}], [D{2} D{3}]), ...
+    @() decomposePair_v111([D{1} D{2}], [D{2} D{3}]), "decomposePair D");
+sameOutput(tc, @() ncvd.decomposePair([D{1} D{2}], [D{2} D{3}], Rank=2), ...
+    @() decomposePair_v111([D{1} D{2}], [D{2} D{3}], Rank=2), "decomposePair D rank 2");
+sameOutput(tc, @() ncvd.decomposePair([B{1} B{2}], [B{2} B{3}]), ...
+    @() decomposePair_v111([B{1} B{2}], [B{2} B{3}]), "decomposePair B");
+tr = track_v111(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M);
+[v0, c] = ncvd.deflate(squeeze(tr.shape(:,1,:)));
+sameOutput(tc, @() ncvd.closure(v0, c, 1), @() closure_v111(v0, c, 1), "closure one mode");
+verifyEmpty(tc, ncvd.closure(v0, c, 1));
+K3 = 2*eye(3) - diag(ones(2,1), 1) - diag(ones(2,1), -1); [Phi, ~] = eig(K3);
+sameOutput(tc, @() ncvd.closure(Phi, c, 1, 0.5), @() closure_v111(Phi, c, 1, 0.5), "closure modal");
+sameOutput(tc, @() ncvd.closure(Phi, c), @() closure_v111(Phi, c), "closure defaults");
+end
+
+function testNumericalRank(tc)
+s = [1 0.5 1e-6 1e-7 1e-14];
+verifyEqual(tc, ncvd.numericalRank(s), 4);
+verifyEqual(tc, ncvd.numericalRank(s, 1e-8), 4);
+verifyEqual(tc, ncvd.numericalRank(s, 5e-6), 2);
+verifyEqual(tc, ncvd.numericalRank(s, [], 1e3), 2);
+verifyEqual(tc, ncvd.numericalRank(s, [], 1e9), 4);
+verifyEqual(tc, ncvd.numericalRank(zeros(3,1)), 0);
+end
+
+function testRankAutoD(tc)
+q = tc.TestData.r112; D = rec112(tc, 'D');
+tr = ncvd.track(D{:}, Fs=20, NWindows=4, Rank="auto");
+verifyEqual(tc, tr.rank, 2); verifyEqual(tc, tr.rankWindows, 2*ones(4,1));
+verifyEqual(tc, tr.rankRule.rule, "min over windows");
+verifyEqual(tc, size(tr.lam, 2), 1);
+verifyLessThan(tc, max(abs(tr.lam - q.D_lam1)), 1e-10);
+rec = ncvd.decompose(D{:}, Rank="auto");
+verifyEqual(tc, rec.rank, 2);
+verifyLessThan(tc, min(abs(rec.lam - q.D_lam1)), 1e-10);
+verifyError(tc, @() ncvd.track(D{:}, Fs=20, NWindows=4, Rank="full"), 'ncvd:rank');
+C = rec112(tc, 'C');
+tc2 = ncvd.track(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M, Rank="auto");
+verifyEqual(tc, tc2.rank, double(q.C_rankauto_rank));
+verifyLessThan(tc, max(abs(tc2.wd - q.C_rankauto_wd), [], 'all'), 1e-8);
+end
+
+function testWindowedA(tc)
+q = tc.TestData.r112; A = rec112(tc, 'A');
+tr = ncvd.windowed(A{:}, 20, NWindows=6, NTrack=1, M=q.A_M);
+verifyLessThan(tc, max(abs(tr.wd - 1)), 0.02);                 % the master, every window
+verifyLessThan(tc, max(abs(tr.wd - q.A_windowed_wd)), 1e-8);   % Python
+verifyEqual(tc, tr.rank, double(q.A_windowed_rank));
+zl = tr.zero.lam; zp = q.A_windowed_zero_lam;
+verifyEqual(tc, isnan(zl), isnan(zp));
+verifyLessThan(tc, max(abs(zl(~isnan(zl)) - zp(~isnan(zp)))), 1e-8);
+verifyGreaterThan(tc, ncvd.mac(squeeze(tr.zero.shape(1,1,:)), q.A_offset(:)), 0.9);
+verifyLessThan(tc, abs(imag(zl(1)))*50/(2*pi), 1);             % < 1 cycle per window
+t = ncvd.track(A{:}, Fs=20, NWindows=6, NTrack=1, M=q.A_M, Center=false, Rank="auto", ...
+    Seed="energy", Matching="identity", Families=true, MaxCost=0.5);
+sameValue(tc, tr, t, "windowed vs track");
+verifyError(tc, @() ncvd.track(A{:}, NWindows=6, Families=true, Matching="identity"), 'ncvd:fs');
+verifyError(tc, @() ncvd.track(A{:}, Fs=20, NWindows=6, Seed="energy"), 'ncvd:matching');
+end
+
+function testSeedTargetsA(tc)
+q = tc.TestData.r112; A = rec112(tc, 'A');
+tr = ncvd.track(A{:}, Fs=20, NWindows=6, NTrack=1, M=q.A_M, Center=false, Seed=2.0, ...
+    Families=true, Matching="identity");
+verifyLessThan(tc, max(abs(tr.wd - 2)), 0.03);
+verifyLessThan(tc, max(abs(tr.wd - q.A_target_wd)), 1e-8);
+end
+
+function testIdentityMatchingB(tc)
+q = tc.TestData.r112; B = rec112(tc, 'B');
+tr = ncvd.track(B{:}, Fs=20, NWindows=6, NTrack=3, Matching="identity", Families=true, NZero=2);
+w = imag(q.B_lam(:)).';
+verifyLessThan(tc, max(abs(tr.wd([1 2 5 6], :) - w), [], 'all'), 1e-8);
+verifyTrue(tc, all(isnan(tr.wd([3 4], 2))) && all(tr.gap([3 4], 2)));
+verifyEqual(tc, tr.gap, logical(q.B_identity_gap));
+verifyLessThan(tc, max(abs(tr.wd(~tr.gap) - q.B_identity_wd(~tr.gap))), 1e-8);
+verifyEqual(tc, tr.nHarmonic, [3 3 2 2 3 3]');
+verifyEqual(tc, tr.zero.seedWindow, 3);
+verifyLessThan(tc, max(abs(sort(real(tr.zero.lam([3 4], :)), 2) - [-0.45 -0.15]), [], 'all'), 1e-8);
+verifyTrue(tc, all(isnan(tr.zero.lam([1 2 5 6], :)), 'all'));
+end
+
+function testGateB2(tc)
+q = tc.TestData.r112; B2 = rec112(tc, 'B2');
+tr = ncvd.track(B2{:}, Fs=20, NWindows=6, NTrack=3, Matching="identity", MaxCost=0.5);
+verifyTrue(tc, all(isnan(tr.wd([3 4], 2))) && all(tr.gap([3 4], 2)));
+verifyTrue(tc, all(tr.cost([3 4], 2) > 0.5));
+verifyEqual(tc, isnan(tr.wd), isnan(q.B2_gate_wd));
+f = ~isnan(tr.wd);
+verifyLessThan(tc, max(abs(tr.wd(f) - q.B2_gate_wd(f))), 1e-8);
+verifyLessThan(tc, max(abs(tr.cost([3 4], 2) - q.B2_gate_cost([3 4], 2))), 1e-8);
+end
+
+function testClosureStrict(tc)
+q = tc.TestData.r112; C = rec112(tc, 'C');
+tr = ncvd.track(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M);
+[v0, c] = ncvd.deflate(squeeze(tr.shape(:,1,:)));
+verifyEmpty(tc, ncvd.closure(v0, c, 1));                       % 1.1.1 behavior
+verifyError(tc, @() ncvd.closure(v0, c, 1, Strict=true), 'ncvd:closure');
+K3 = 2*eye(3) - diag(ones(2,1), 1) - diag(ones(2,1), -1); [Phi, ~] = eig(K3);
+P = ncvd.closure(Phi, c, 1, 0.5);
+verifyEqual(tc, ncvd.closure(Phi, c, 1, 0.5, [], Strict=true), P);
+Vp = null(c.');
+verifyEmpty(tc, ncvd.closure(Vp, c, 1));
+verifyError(tc, @() ncvd.closure(Vp, c, 1, Strict=true), 'ncvd:closure');
+verifyError(tc, @() ncvd.closure(Phi, c, 2, Strict=true), 'ncvd:closure');
+end
+
+function testFamilyClosure(tc)
+q = tc.TestData.r112; C = rec112(tc, 'C');
+tr = ncvd.track(C{:}, Fs=20, NWindows=10, NTrack=1, M=q.C_M, Rank="auto");
+sh = squeeze(tr.shape(:,1,:));
+[~, ~, mag] = ncvd.deflate(sh);
+[P, sv] = ncvd.familyClosure(sh, q.C_family_tol);
+verifyEqual(tc, P, double(q.C_family_P));
+verifyLessThan(tc, abs(sv(1) - mag), 1e-14);
+verifyLessThan(tc, abs(sv(1) - q.C_family_sv(1)), 1e-8);
+verifyEqual(tc, ncvd.familyClosure(sh, 2*mag), 1);
 end

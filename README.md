@@ -22,7 +22,7 @@ paired with its shape by construction.
 
 ## What it does
 
-- Exact decomposition of a state record or of any matrix pair, with whitening, centring,
+- Exact decomposition of a state record or of any matrix pair, with whitening, centering,
   row weights and a time-unit option for the balanced quotient
 - Rates from displacement with any FIR stencil (forward, central, five-point,
   Savitzky–Golay) and exact pole correction inside each stencil's band
@@ -30,7 +30,11 @@ paired with its shape by construction.
 - Measured forcing (no mass matrix needed) and ensembles of records with different
   sampling rates and lengths
 - Amplitude-dependent identification of nonlinear systems by sliding windows:
-  backbone curves, frequency–energy dependence, window residual
+  backbone curves, frequency–energy dependence, window residual. `track` keeps the
+  1.1.1 procedure as its default; `windowed` (1.1.2) is the opt-in protocol with a
+  declared numerical-rank rule, energy seeding, separate harmonic and zero-frequency
+  (static-offset) pole families, and identity-preserving matching with explicit gaps
+  (see `CHANGELOG.md`)
 - Reduced-order-model diagnostics: robustness bases, deflation, escape, closure, projection
 - Benchmarks (published GCVD readout, DMD, ITD) and test systems
 
@@ -41,7 +45,7 @@ Overview page: https://web.uri.edu/nld/ncvd-toolbox/
 ```bash
 git clone https://github.com/nld-uri/ncvd-toolbox.git
 cd ncvd-toolbox/python && pip install -e .[plot,test]
-python -m pytest -q                      # 29 tests
+python -m pytest -q                      # 94 tests
 python examples/ex01_linear_chain.py
 ```
 
@@ -59,7 +63,7 @@ MATLAB R2022a+ (base MATLAB, no toolboxes):
 addpath('matlab')
 rec = ncvd.decompose(disp, vel, acc);
 mp  = ncvd.modalParameters(rec.lam);
-results = runtests('matlab/tests/test_ncvd.m')   % 14 tests, incl. Python cross-checks
+results = runtests('matlab/tests/test_ncvd.m')   % 23 tests, incl. Python cross-checks
 ```
 
 ## Contents
@@ -84,7 +88,7 @@ GitHub's **Cite this repository** button (from `CITATION.cff`) gives both entrie
 @software{chelidze2026ncvd,
   author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
   title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},
-  version   = {1.1.1},
+  version   = {1.1.2},
   year      = {2026},
   publisher = {Zenodo},
   doi       = {10.5281/zenodo.23549068},

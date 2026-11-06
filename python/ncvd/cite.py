@@ -11,7 +11,7 @@ PAPER_DOI = '10.1016/j.ymssp.2024.111769'
 _BIBTEX = r"""@software{chelidze2026ncvd,
   author    = {Chelidze, David and Li, Hewenxuan and Stein, Dalton L.},
   title     = {{NCVD} toolbox: Nonlinear Characteristic Value Decomposition for {Python} and {MATLAB}},
-  version   = {1.1.1},
+  version   = {1.1.2},
   year      = {2026},
   publisher = {Zenodo},
   doi       = {10.5281/zenodo.23549068},
@@ -29,7 +29,7 @@ _BIBTEX = r"""@software{chelidze2026ncvd,
 }"""
 
 _TEXT = """D. Chelidze, H. Li, D. L. Stein, NCVD toolbox: Nonlinear Characteristic Value \
-Decomposition for Python and MATLAB, version 1.1.1, Zenodo (2026). \
+Decomposition for Python and MATLAB, version 1.1.2, Zenodo (2026). \
 https://doi.org/10.5281/zenodo.23549068
 
 H. Li, D. L. Stein, D. Chelidze, Characteristic value decomposition: A unifying paradigm \

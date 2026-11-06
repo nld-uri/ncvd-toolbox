@@ -7,7 +7,8 @@ function rec = decompose(disp, vel, acc, opts)
 %   X1 = [disp vel] = U*Phi',   X2 = [vel acc] = U*diag(lam)*Phi' + R.
 %   disp, vel, acc are (m x n): m snapshots, n stations.
 %
-%   Options as in ncvd.decomposePair, plus
+%   Options as in ncvd.decomposePair (including Rank="auto", RankRtol and
+%   RankGap, opt-in since 1.1.2), plus
 %       Structured  true   keep the kinematic block exact (TLS, BCLS)
 %       NoiseVar    []     "auto" or 2n noise variances of [disp vel] (BCLS)
 %       Fs          []     sampling rate, needed for NoiseVar="auto"
@@ -33,6 +34,8 @@ arguments
     opts.Fs = []
     opts.Readout (1,1) string = "eig"
     opts.LegacyBalanced (1,1) logical = false
+    opts.RankRtol (1,1) double = 1e-12
+    opts.RankGap = []
 end
 if ~isequal(size(disp), size(vel), size(acc))
     error('ncvd:size', 'disp, vel and acc must have the same size');
@@ -48,5 +51,6 @@ if opts.Structured, split = n; end
 rec = ncvd.decomposePair([disp vel], [vel acc], Rank=opts.Rank, Center=opts.Center, ...
     Operator=opts.Operator, Forcing=opts.Forcing, TimeScale=opts.TimeScale, ...
     Weights=opts.Weights, Sort=opts.Sort, StructuredSplit=split, NoiseVar=nv, ...
-    Readout=opts.Readout, LegacyBalanced=opts.LegacyBalanced);
+    Readout=opts.Readout, LegacyBalanced=opts.LegacyBalanced, ...
+    RankRtol=opts.RankRtol, RankGap=opts.RankGap);
 end

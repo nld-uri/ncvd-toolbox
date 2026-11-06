@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ncvd"
-version = "1.1.1"
+version = "1.1.2"
 description = "Nonlinear Characteristic Value Decomposition: exact state-rate modal decomposition, FIR pole correction, ensemble and amplitude-dependent identification"
 authors = [
   {name = "David Chelidze"},

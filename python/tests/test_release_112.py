@@ -456,3 +456,20 @@ def test_default_track_runs_the_v111_source(v111):
     from ncvd import tracking
     new = inspect.getsource(tracking._track_v111).replace('def _track_v111(', 'def track(', 1)
     assert new == inspect.getsource(v111.tracking.track)
+
+
+def test_matlab_track_runs_the_v111_body():
+    """matlab/+ncvd/track.m dispatches default calls to its local function
+    trackV111, whose body is the 1.1.1 track body (after the arguments block)."""
+    old = open(os.path.join(REPO, 'matlab', 'tests', 'v111', 'track_v111.m')).read().split('\n')
+    ia = old.index('arguments')
+    ie = next(i for i in range(ia, len(old)) if old[i] == 'end')
+    body_old = '\n'.join(old[ie + 1:]).rstrip()
+    assert body_old.endswith('\nend')
+    body_old = body_old[:-4]
+    new = open(os.path.join(REPO, 'matlab', '+ncvd', 'track.m')).read()
+    head = ('function tr = trackV111(disp, vel, acc, opts)\n'
+            '% The body of ncvd.track in release 1.1.1, unchanged (opts already validated).\n')
+    i0 = new.index(head) + len(head)
+    i1 = new.index('\nend\n\n% ------------------------------------------------------------------ 1.1.2 routine')
+    assert new[i0:i1] == body_old

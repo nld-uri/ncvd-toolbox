@@ -396,7 +396,8 @@ def _follow(cands, k_req, rule, targets, w_freq, max_cost):
         if not cw or k == 0:
             continue
         C = np.array([[(1 - (c['shape'] @ p['shape'])**2)
-                       + w_freq*abs(np.log(abs(c['lam'])/abs(p['lam']))) for c in cw]
+                       + w_freq*abs(np.log(max(abs(c['lam']), 1e-300)
+                                           / max(abs(p['lam']), 1e-300))) for c in cw]
                       for p in ref])
         rows, cols = linear_sum_assignment(C)
         for j, ci in zip(rows, cols):

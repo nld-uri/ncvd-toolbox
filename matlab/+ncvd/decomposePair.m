@@ -13,7 +13,14 @@ function rec = decomposePair(Y1, Y2, opts)
 %       V, T, S2, B, G, s, share, condT, condV, resid, res, exact1, timeScale
 %
 %   Name-value options
-%       Rank        []        whiten Y1 to this rank (does not change lam)
+%       Rank        []        whiten Y1 to this rank (does not change lam).
+%                             [] keeps every direction (1.1.1 default); "auto"
+%                             (opt-in, 1.1.2) keeps the numerical rank of the
+%                             preprocessed Y1, ncvd.numericalRank(svd(Y1),
+%                             RankRtol, RankGap), returned as rec.rank with
+%                             rec.rankRule
+%       RankRtol    1e-12     relative threshold of Rank="auto"
+%       RankGap     []        gap ratio of Rank="auto" ([] = threshold only)
 %       Center      false     remove column means
 %       Operator    "ls"      "ls" | "tls" | "bcls"
 %       Forcing     []        (m x q) known input; projected out (Frisch-Waugh)
@@ -43,6 +50,8 @@ arguments
     opts.NoiseVar = []
     opts.Readout (1,1) string = "eig"
     opts.LegacyBalanced (1,1) logical = false
+    opts.RankRtol (1,1) double = 1e-12
+    opts.RankGap = []
 end
 if size(Y1,1) ~= size(Y2,1)
     error('ncvd:size', 'Y1 and Y2 must have the same number of rows');
@@ -61,6 +70,15 @@ if ~isempty(F)
     if ~isempty(opts.Weights), F = F.*w; end
 end
 split = opts.StructuredSplit;
+rankRule = [];
+if isstring(opts.Rank) || ischar(opts.Rank)          % opt-in path (1.1.2)
+    if string(opts.Rank) ~= "auto"
+        error('ncvd:rank', 'Rank must be [], an integer or "auto"');
+    end
+    opts.Rank = ncvd.numericalRank(svd(Y1), opts.RankRtol, opts.RankGap);
+    if opts.Rank < 1, error('ncvd:rank', 'Y1 has numerical rank 0'); end
+    rankRule = struct('rule', "numerical rank", 'rtol', opts.RankRtol, 'gap', opts.RankGap);
+end
 [~, Sall, Wall] = svd(Y1, 'econ'); sAll = diag(Sall);
 if isempty(opts.Rank)
     Z1 = Y1; Z2 = Y2; back = [];
@@ -128,6 +146,9 @@ rec = struct('lam', lam, 'Phi', Phi, 'Psi', conj(Phi), 'U', U, 'R', R, 'V', V, '
     'resid', resid, 'res', norm(R,'fro')/max(norm(Z2,'fro'),1e-300), ...
     'exact1', norm(Z1 - U*W','fro')/max(norm(Z1,'fro'),1e-300), 'timeScale', c, ...
     'operator', opts.Operator, 'readout', opts.Readout);
+if ~isempty(rankRule)                                % opt-in path only (1.1.2)
+    rec.rank = opts.Rank; rec.rankRule = rankRule;
+end
 end
 
 function o = sortOrder(lam)
