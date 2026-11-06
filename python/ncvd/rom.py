@@ -14,7 +14,7 @@ balanced-matrix shapes and must not be mixed.
 """
 import numpy as np
 
-__all__ = ['robustness_basis', 'deflate', 'escape', 'closure', 'project',
+__all__ = ['robustness_basis', 'deflate', 'escape', 'closure', 'family_closure', 'project',
            'residual_augmentation', 'augment']
 
 
@@ -54,16 +54,74 @@ def escape(V_kept, corrections):
     return np.linalg.norm(C - Q @ (Q.T @ C), axis=0)
 
 
-def closure(V0, corrections, k=1, tol=0.05, p_max=None):
+def closure(V0, corrections, k=1, tol=0.05, p_max=None, strict=False):
     """Smallest P such that the first k corrections escape span(V0[:, :P]) by
-    less than tol. Returns None if not met within p_max. Do not pose with k = P."""
+    less than tol. Returns None if not met within p_max. Do not pose with k = P.
+
+    strict : False (default; the 1.1.1 behavior, None when not met) or True
+        (opt-in, 1.1.2): never return None. Raises ValueError, with the reason,
+        when corrections has fewer than k columns, when the posing is
+        degenerate (V0 offers no candidate column beyond the k masters, so P
+        can only be k; in particular closure(V0=[v0], c, k=1) for one tracked
+        mode, whose deflation correction is orthogonal to v0 by construction
+        and can never close), or when closure is not met within p_max.
+        For the closure of one shape family use `family_closure`.
+    """
     V = np.asarray(V0, float)
     hi = V.shape[1] if p_max is None else min(p_max, V.shape[1])
     C = np.asarray(corrections, float)[:, :k]
+    if strict:
+        _closure_posing(V, np.asarray(corrections, float), k, hi, p_max)
     for P in range(max(k, 1), hi + 1):
         if escape(V[:, :P], C).max() < tol:
             return P
+    if strict:
+        e = escape(V[:, :hi], C).max()
+        raise ValueError(f'closure not met: the first {k} correction(s) escape span(V0[:, :P]) '
+                         f'by at least tol={tol:g} for every P up to {hi} (escape {e:.3g} '
+                         f'at P = {hi}). Enlarge V0 or p_max.')
     return None
+
+
+def _closure_posing(V, C, k, hi, p_max):
+    """Reasons a closure call cannot return a meaningful P (used by strict=True)."""
+    nc = 1 if C.ndim == 1 else C.shape[1]
+    if nc < k:
+        raise ValueError(f'closure: corrections has {nc} columns, fewer than k={k}')
+    if hi <= k:
+        raise ValueError(
+            f'closure is degenerate: V0 has {V.shape[1]} column(s) (p_max={p_max}), so the only '
+            f'candidate is P = k = {k}. A correction deflated from a shape family is orthogonal '
+            f'to that family\'s own v0, so with one tracked mode (V0 = [v0], k = 1) closure can '
+            f'never be met. Pass a candidate basis with columns beyond the k masters (linear '
+            f'modes, or the other tracked shapes), or use rom.family_closure(shapes, tol) for '
+            f'the closure of one shape family.')
+
+
+def family_closure(shapes, tol=0.05, ref=None):
+    """Closure dimension of ONE resonance's shape family (new in 1.1.2).
+
+    The defined counterpart of `closure` for a single tracked mode:
+
+        P = 1 + #{ i : s_i / s_family,1 >= tol },
+
+    s_i the singular values of the deflated family S - v0 v0^T S (the
+    construction of `deflate`, whose `mag` is s_1 / s_family,1). P is the
+    smallest number of directions [v0, c_1, ..., c_(P-1)], c_i the leading
+    deflation directions, that contain every shape of the family to within
+    tol of the family's leading singular value. P = 1 means the family is flat
+    to tol.
+
+    shapes : (n_windows, n), LAST row = lowest-amplitude window (default v0).
+    Returns (P, sv) with sv the relative deflation singular values.
+    """
+    S = np.asarray(shapes, float).T
+    sv_family = np.linalg.svd(S, compute_uv=False)
+    v = np.asarray(S[:, -1] if ref is None else ref, float)
+    v0 = v/max(np.linalg.norm(v), 1e-300)
+    Rr = S - np.outer(v0, v0 @ S)
+    sv = np.linalg.svd(Rr, compute_uv=False)/max(sv_family[0], 1e-300)
+    return 1 + int(np.sum(sv >= tol)), sv
 
 
 def residual_augmentation(R, K, M=None, n_space=None, n_dir=1):

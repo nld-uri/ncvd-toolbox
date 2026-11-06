@@ -121,6 +121,9 @@ def assert_same(a, b, where='result'):
     assert x.shape == y.shape, f'{where}: shape {x.shape} != {y.shape}'
     if x.size == 0:
         return
+    if x.dtype == bool or y.dtype == bool:
+        assert np.array_equal(x, y), f'{where}: boolean arrays differ'
+        return
     nx, ny = np.isnan(x), np.isnan(y)
     assert np.array_equal(nx, ny), f'{where}: NaN pattern differs'
     fin = ~nx
@@ -228,7 +231,8 @@ def test_default_rank_keeps_null_directions_D(recD, monkeypatch):
 def test_numerical_rank_rule():
     s = np.array([1.0, 0.5, 1e-6, 1e-7, 1e-14])
     assert nc.numerical_rank(s) == 4                    # relative threshold 1e-12
-    assert nc.numerical_rank(s, rtol=1e-8) == 2
+    assert nc.numerical_rank(s, rtol=1e-8) == 4
+    assert nc.numerical_rank(s, rtol=5e-6) == 2
     assert nc.numerical_rank(s, gap=1e3) == 2           # first ratio s_i/s_{i+1} > 1e3
     assert nc.numerical_rank(s, gap=1e9) == 4
     assert nc.numerical_rank(np.zeros(3)) == 0
@@ -344,10 +348,12 @@ def test_identity_matching_gate_B2(recB2):
     d, v, a, info = recB2
     tr = nc.track(d, v, a, fs=R.FS, n_windows=6, n_track=3, matching='identity')
     assert np.allclose(tr.wd[2:4, 1], info['lam_new'].imag, rtol=1e-8)   # no gate: assigned
-    assert np.all(tr.cost[2:4, 1] > 1.0)                                 # ... at a high cost
+    assert tr.cost[2, 1] > 1.0                                           # ... at a high cost,
+    assert tr.cost[3, 1] < 1e-8                                          # then it is the reference
     tg = nc.track(d, v, a, fs=R.FS, n_windows=6, n_track=3, matching='identity', max_cost=0.5)
     assert np.all(np.isnan(tg.wd[2:4, 1])) and np.all(tg.gap[2:4, 1])
-    assert np.all(tg.cost[2:4, 1] > 0.5)                                 # rejected cost kept
+    assert np.all(tg.cost[2:4, 1] > 0.5)                                 # rejected cost kept,
+    assert not tg.gap[[0, 1, 4, 5], 1].any()                             # reference not overwritten
     assert np.allclose(tg.wd[[0, 1, 4, 5], 1], info['lam'][1].imag, rtol=1e-8)
 
 
@@ -358,14 +364,20 @@ def test_closure_strict_C(recC):
     Phi = np.linalg.eigh(2*np.eye(3) - np.eye(3, k=1) - np.eye(3, k=-1))[1]
     P = rom.closure(Phi, c[:, None], k=1, tol=0.5)
     assert P is not None and rom.closure(Phi, c[:, None], k=1, tol=0.5, strict=True) == P
+    from scipy.linalg import null_space
+    Vperp = null_space(c[None, :])                     # 2 columns, both orthogonal to c
+    assert rom.closure(Vperp, c[:, None], k=1) is None
     with pytest.raises(ValueError, match='not met'):
-        rom.closure(Phi, c[:, None], k=1, tol=1e-9, p_max=1, strict=True)
+        rom.closure(Vperp, c[:, None], k=1, strict=True)
+    with pytest.raises(ValueError, match='degenerate'):
+        rom.closure(Phi, c[:, None], k=1, p_max=1, strict=True)
     with pytest.raises(ValueError, match='columns'):
         rom.closure(Phi, c[:, None], k=2, strict=True)
 
 
 def test_family_closure_C(recC):
-    sh = _shapes_C(nc, recC)
+    M, d, v, a = recC
+    sh = nc.track(d, v, a, fs=R.FS, n_windows=10, n_track=1, M=M, rank='auto').shape[:, 0, :]
     _, _, mag = rom.deflate(sh)
     P, sv = rom.family_closure(sh, tol=0.5*mag)
     assert P >= 2 and abs(sv[0] - mag) < 1e-14
@@ -436,3 +448,11 @@ def test_matlab_v111_copies_are_the_tag():
         assert head.count(name.encode() + b'_v111(') == 1, f
         orig = head.replace(name.encode() + b'_v111(', name.encode() + b'(') + b'\n' + rest
         assert hashlib.sha1(b'blob %d\0' % len(orig) + orig).hexdigest() == h, f
+
+
+def test_default_track_runs_the_v111_source(v111):
+    """track's default path calls _track_v111, which is the 1.1.1 track source
+    with only its name changed."""
+    from ncvd import tracking
+    new = inspect.getsource(tracking._track_v111).replace('def _track_v111(', 'def track(', 1)
+    assert new == inspect.getsource(v111.tracking.track)

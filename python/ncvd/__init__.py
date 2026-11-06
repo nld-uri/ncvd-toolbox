@@ -19,12 +19,12 @@ Modal quantities
 Kinematics
     state_from_displacement, deriv_filter, correct_poles
 Nonlinear tracking
-    track, window_edges, band_frequency
+    track, windowed, window_edges, band_frequency, numerical_rank
 Ensemble
     ncvd_ensemble
 Reduced-order models
-    rom.robustness_basis, rom.deflate, rom.escape, rom.closure, rom.project,
-    rom.residual_augmentation, rom.augment
+    rom.robustness_basis, rom.deflate, rom.escape, rom.closure, rom.family_closure,
+    rom.project, rom.residual_augmentation, rom.augment
 Benchmarks
     benchmarks.gcvd, benchmarks.dmd, benchmarks.itd
 Test systems
@@ -35,22 +35,23 @@ Citation
     cite()  -- BibTeX for the software (doi:10.5281/zenodo.23549068) and the method paper
 """
 from .core import (ncvd, ncvd_pair, decompose, NCVDResult, DEFAULT_RANK,
-                   balanced_quotient, regression_operator, auto_time_scale, noise_variance)
+                   balanced_quotient, regression_operator, auto_time_scale, noise_variance,
+                   numerical_rank)
 from .modal import (modal_parameters, physical_modes, realify, mpc, mac, mac_matrix,
                     mac_phase_matched, relative_error, normalize_shape, match_modes,
                     poles_and_shapes)
 from .kinematics import state_from_displacement, deriv_filter, correct_poles, DerivFilter
-from .tracking import track, window_edges, band_frequency
+from .tracking import track, windowed, window_edges, band_frequency
 from .ensemble import ncvd_ensemble
 from . import rom, benchmarks, systems, operators, refine, diagnostics
 from .cite import cite, DOI
 
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 __all__ = ['ncvd', 'ncvd_pair', 'decompose', 'NCVDResult', 'DEFAULT_RANK',
            'balanced_quotient', 'regression_operator', 'auto_time_scale', 'noise_variance',
-           'modal_parameters', 'physical_modes', 'realify', 'mpc', 'mac', 'mac_matrix',
+           'numerical_rank', 'modal_parameters', 'physical_modes', 'realify', 'mpc', 'mac', 'mac_matrix',
            'mac_phase_matched', 'relative_error', 'normalize_shape', 'match_modes',
            'poles_and_shapes', 'state_from_displacement', 'deriv_filter',
-           'correct_poles', 'DerivFilter', 'track', 'window_edges', 'band_frequency',
+           'correct_poles', 'DerivFilter', 'track', 'windowed', 'window_edges', 'band_frequency',
            'ncvd_ensemble', 'rom', 'benchmarks', 'systems', 'operators', 'refine',
            'diagnostics', 'cite', 'DOI']

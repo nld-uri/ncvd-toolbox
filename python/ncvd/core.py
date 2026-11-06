@@ -110,9 +110,47 @@ import warnings
 import numpy as np
 
 __all__ = ['ncvd', 'ncvd_pair', 'decompose', 'NCVDResult', 'DEFAULT_RANK',
-           'balanced_quotient', 'regression_operator', 'auto_time_scale', 'noise_variance']
+           'balanced_quotient', 'regression_operator', 'auto_time_scale', 'noise_variance',
+           'numerical_rank']
 
 DEFAULT_RANK = None
+RANK_RTOL = 1e-12          # relative singular-value threshold of rank='auto' (1.1.2)
+
+
+def numerical_rank(s, rtol=RANK_RTOL, gap=None):
+    """Numerical rank of a matrix from its singular values (added in 1.1.2).
+
+    The declared criterion used by `rank='auto'` in `ncvd_pair`, `ncvd` and
+    `tracking.track`:
+
+        r = #{ i : s_i > rtol * s_1 }                         (relative threshold)
+
+    and, if `gap` is given, r is further cut at the FIRST index i < r with
+    s_i / s_{i+1} > gap                                       (gap criterion)
+
+    Parameters
+    ----------
+    s : singular values in descending order (as returned by numpy.linalg.svd).
+    rtol : relative threshold, default 1e-12 (the threshold of the 1.1.1 rank
+        warning and of `operators.ncvd_snapshot`).
+    gap : None (threshold only, the default) or a ratio > 1, e.g. 1e3 for a
+        three-decade drop.
+
+    Returns int (0 for an all-zero matrix).
+    """
+    s = np.asarray(s, float).ravel()
+    if s.size == 0 or not s[0] > 0:
+        return 0
+    r = int(np.sum(s > rtol*s[0]))
+    if gap is not None and r > 1:
+        if not gap > 1:
+            raise ValueError('gap must be a ratio > 1')
+        with np.errstate(divide='ignore'):
+            ratio = s[:r - 1]/s[1:r]
+        big = np.where(ratio > gap)[0]
+        if big.size:
+            r = int(big[0]) + 1
+    return r
 
 
 class NCVDResult(dict):
@@ -245,7 +283,8 @@ def _sort_order(lam):
 # --------------------------------------------------------------------------- main
 def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
               time_scale=None, weights=None, sort=True, structured_split=None,
-              legacy_balanced=False, readout='eig', noise_var=None):
+              legacy_balanced=False, readout='eig', noise_var=None,
+              rank_rtol=RANK_RTOL, rank_gap=None):
     """NCVD of a generic matrix pair (Y1, Y2) with Y2 ~ Y1 B.
 
     Use this for shift-map data (Y2 = Y1 delayed one sample), Hankel matrices,
@@ -254,10 +293,18 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
 
     Parameters
     ----------
-    rank : int or None
+    rank : int, None or 'auto'
         Whiten Y1 by its SVD and keep `rank` directions. Does not change lam
         when Y1 has full column rank; repairs conditioning when the spectrum
         spans decades. Shapes are mapped back to the original coordinates.
+        None (the default, unchanged since 1.0) keeps EVERY direction, which
+        makes the result depend on the balanced quotient when Y1 is rank
+        deficient (a RuntimeWarning says so). 'auto' (opt-in, 1.1.2) keeps the
+        numerical rank of the preprocessed Y1 by `numerical_rank(s,
+        rank_rtol, rank_gap)` and returns it as `rank`, with the rule as
+        `rank_rule`.
+    rank_rtol, rank_gap : criterion of rank='auto' (see `numerical_rank`);
+        ignored otherwise.
     center : bool
         Remove each column mean (use for multi-equilibrium systems).
     operator : 'ls' or 'tls'
@@ -312,6 +359,14 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
         if weights is not None:
             F = F*w
 
+    rank_rule = None
+    if isinstance(rank, str):
+        if rank != 'auto':
+            raise ValueError(f"rank must be None, an int or 'auto', got {rank!r}")
+        rank = numerical_rank(np.linalg.svd(Y1, compute_uv=False), rank_rtol, rank_gap)
+        if rank < 1:
+            raise ValueError('Y1 has numerical rank 0')
+        rank_rule = dict(rule='numerical rank', rtol=rank_rtol, gap=rank_gap)
     s_all = np.linalg.svd(Y1, compute_uv=False)
     if rank is None:
         nr = int(np.sum(s_all > 1e-12*max(s_all[0], 1e-300)))
@@ -395,18 +450,23 @@ def ncvd_pair(Y1, Y2, rank=None, center=False, operator='ls', forcing=None,
     if G is not None:
         fit = fit + F @ G
     R = Z2 - fit
-    return NCVDResult(
+    out = NCVDResult(
         lam=lam, Phi=Phi, Psi=Phi.conj(), E=Emat, U=U, R=R, V=V, T=T, S2=S2, s=s_all,
         share=share, B=B, G=G,
         condT=float(np.linalg.cond(T)), condV=float(np.linalg.cond(V)), resid=resid,
         res=float(np.linalg.norm(R)/max(np.linalg.norm(Z2), 1e-300)),
         exact1=float(np.linalg.norm(Z1 - U @ W.conj().T)/max(np.linalg.norm(Z1), 1e-300)),
         time_scale=c, operator=operator, readout=('legacy' if legacy_balanced else readout))
+    if rank_rule is not None:                            # opt-in path only (1.1.2)
+        out['rank'] = int(rank)
+        out['rank_rule'] = rank_rule
+    return out
 
 
 def ncvd(disp, vel, acc, rank=None, center=False, legacy_balanced=False,
          operator='ls', forcing=None, time_scale=None, weights=None, sort=True,
-         structured=True, readout='eig', noise_var=None, fs=None):
+         structured=True, readout='eig', noise_var=None, fs=None,
+         rank_rtol=RANK_RTOL, rank_gap=None):
     """The canonical NCVD of a state record.
 
     Parameters
@@ -414,7 +474,9 @@ def ncvd(disp, vel, acc, rank=None, center=False, legacy_balanced=False,
     disp, vel, acc : (m, n) arrays
         Displacement, velocity and acceleration at n stations over m snapshots.
     rank, center, legacy_balanced :
-        As in the original toolbox (see `ncvd_pair`).
+        As in the original toolbox (see `ncvd_pair`). rank='auto' (opt-in,
+        1.1.2) keeps the numerical rank of [disp, vel] by the criterion
+        `numerical_rank(s, rank_rtol, rank_gap)`.
     operator : 'ls' (default, canonical), 'tls' or 'bcls'
     noise_var : 'auto', (2n,) array of [disp, vel] noise variances, or None.
         Used by operator='bcls'. 'auto' estimates them from the spectral
@@ -444,7 +506,8 @@ def ncvd(disp, vel, acc, rank=None, center=False, legacy_balanced=False,
     return ncvd_pair(X1, X2, rank=rank, center=center, operator=operator,
                      forcing=forcing, time_scale=time_scale, weights=weights,
                      sort=sort, structured_split=(n if structured else None),
-                     legacy_balanced=legacy_balanced, readout=readout, noise_var=noise_var)
+                     legacy_balanced=legacy_balanced, readout=readout, noise_var=noise_var,
+                     rank_rtol=rank_rtol, rank_gap=rank_gap)
 
 
 decompose = ncvd
