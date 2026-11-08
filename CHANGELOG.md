@@ -89,9 +89,8 @@ witness test on the default path.
 ### Tests
 
 Python: 48 (1.1.1) -> 94, all passing (20 default-agreement calls, 5 defect witnesses,
-16 opt-in tests, 5 integrity checks). MATLAB: 14 -> 23 test functions. The MATLAB changes
-were parsed with MISS_HIT 0.9.44 (no syntax errors) but NOT RUN: MATLAB could not start in
-the build environment. Run `runtests('matlab/tests/test_ncvd.m')` before publishing.
+16 opt-in tests, 5 integrity checks). MATLAB: 14 -> 23 test functions; the MATLAB suite
+passes (23 tests, run by the maintainer on MATLAB R2026b, 8 Nov 2026).
 
 ## 1.1.1 -- 2026-10-27
 
